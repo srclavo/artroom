@@ -97,6 +97,7 @@ export function Navbar() {
 
             <button
               onClick={openSearch}
+              aria-label="Search (Cmd+K)"
               className="w-8 h-8 rounded-full border border-[#e8e8e8] flex items-center justify-center bg-transparent cursor-pointer hover:border-[#0a0a0a] hover:bg-[#f5f5f5] transition-all"
             >
               <Search size={13} />
@@ -116,6 +117,7 @@ export function Navbar() {
             <div className="relative hidden sm:block">
               <button
                 onClick={() => { setNotifOpen(!notifOpen); setCartOpen(false); }}
+                aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
                 className="w-8 h-8 rounded-full border border-[#e8e8e8] flex items-center justify-center bg-transparent cursor-pointer hover:border-[#0a0a0a] hover:bg-[#f5f5f5] transition-all relative"
               >
                 <Bell size={13} />
@@ -131,6 +133,7 @@ export function Navbar() {
             {/* Cart */}
             <button
               onClick={() => { setCartOpen(true); setNotifOpen(false); }}
+              aria-label={`Cart${itemCount > 0 ? ` (${itemCount} items)` : ''}`}
               className="w-8 h-8 rounded-full border border-[#e8e8e8] flex items-center justify-center bg-transparent cursor-pointer hover:border-[#0a0a0a] hover:bg-[#f5f5f5] transition-all relative hidden sm:flex"
             >
               <ShoppingBag size={13} />
@@ -179,6 +182,8 @@ export function Navbar() {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
               className="md:hidden w-8 h-8 flex items-center justify-center cursor-pointer bg-transparent border-none"
             >
               {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
