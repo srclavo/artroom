@@ -1,5 +1,7 @@
 'use client';
 
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useCallback } from 'react';
 import { Tabs } from '@/components/ui/Tabs';
 import { CATEGORIES } from '@/constants/categories';
 
@@ -22,13 +24,31 @@ interface FilterTabsProps {
 }
 
 export function FilterTabs({ activeTab, onTabChange }: FilterTabsProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const allTabs = [...MAIN_TABS, ...CATEGORY_TABS];
+
+  const handleTabChange = useCallback(
+    (tab: string) => {
+      onTabChange(tab);
+      const params = new URLSearchParams(searchParams.toString());
+      if (tab === 'all') {
+        params.delete('tab');
+      } else {
+        params.set('tab', tab);
+      }
+      const qs = params.toString();
+      router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
+    },
+    [onTabChange, searchParams, router, pathname]
+  );
 
   return (
     <Tabs
       tabs={allTabs}
       activeTab={activeTab}
-      onTabChange={onTabChange}
+      onTabChange={handleTabChange}
     />
   );
 }

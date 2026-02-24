@@ -11,6 +11,8 @@ interface MobileNavProps {
 
 const NAV_LINKS = [
   { label: 'Gallery', href: ROUTES.home },
+  { label: 'Explore Gallery', href: ROUTES.gallery },
+  { label: 'Skill Vault', href: ROUTES.skills },
   { label: 'Job Fair', href: ROUTES.jobs },
   { label: 'My Studio', href: ROUTES.dashboard },
   { label: 'Login', href: ROUTES.login },
@@ -19,24 +21,36 @@ const NAV_LINKS = [
 
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   return (
-    <div
-      className={cn(
-        'fixed inset-0 top-14 z-[400] bg-white transition-transform duration-300 md:hidden',
-        isOpen ? 'translate-x-0' : 'translate-x-full'
-      )}
-    >
-      <div className="flex flex-col p-7 gap-1">
-        {NAV_LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            onClick={onClose}
-            className="font-[family-name:var(--font-syne)] text-[16px] font-bold tracking-[0.01em] text-[#0a0a0a] no-underline py-3 border-b border-[#f2f2f2] hover:opacity-60 transition-opacity"
-          >
-            {link.label}
-          </Link>
-        ))}
+    <>
+      {/* Backdrop overlay */}
+      <div
+        className={cn(
+          'fixed inset-0 top-14 z-[399] bg-black/40 backdrop-blur-sm transition-opacity duration-300 md:hidden',
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        )}
+        onClick={onClose}
+      />
+
+      {/* Drawer */}
+      <div
+        className={cn(
+          'fixed inset-0 top-14 z-[400] bg-white transition-transform duration-300 md:hidden',
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        )}
+      >
+        <div className="flex flex-col p-7 gap-1">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              onClick={onClose}
+              className="font-[family-name:var(--font-syne)] text-[16px] font-bold tracking-[0.01em] text-[#0a0a0a] no-underline py-3 border-b border-[#f2f2f2] hover:opacity-60 transition-opacity"
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

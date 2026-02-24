@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { FilterTabs } from '@/components/marketplace/FilterTabs';
@@ -71,9 +72,23 @@ const MOCK_PORTFOLIOS: PortfolioWithCreator[] = [
 const CARD_HEIGHTS = [200, 260, 220, 280, 240, 310, 230, 250, 270, 190, 300, 210, 240, 280, 220, 260];
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState('all');
+  return (
+    <Suspense>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+function HomeContent() {
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'all');
   const [viewerDesign, setViewerDesign] = useState<DesignWithCreator | null>(null);
   const { isOpen, paymentIntent, openPayment, closePayment } = usePayment();
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && tab !== activeTab) setActiveTab(tab);
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredDesigns = useMemo(() => {
     if (activeTab === 'all' || activeTab === 'studios' || activeTab === 'portfolios') {
