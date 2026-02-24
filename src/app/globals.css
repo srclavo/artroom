@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+/* ===== Fonts ===== */
+@font-face {
+  font-family: "Syne";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url("https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap");
+}
+
+/* ===== CSS Variables ===== */
+:root {
+  --font-syne: "Syne", sans-serif;
+  --font-dm-sans: "DM Sans", sans-serif;
+  --font-dm-mono: "DM Mono", monospace;
+  --nav-h: 56px;
+  --bar-h: 50px;
+}
+
+/* ===== Base ===== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-dm-sans);
+  background: #fff;
+  color: #0a0a0a;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Scrollbar ===== */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== Masonry Visibility Animation ===== */
+[data-masonry-item] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+[data-masonry-item].masonry-visible,
+[data-masonry-item].visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== Modal Animation ===== */
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-modal-in {
+  animation: modal-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ===== Sign Rock Animation ===== */
+@keyframes sign-rock {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+.animate-sign-rock {
+  animation: sign-rock 3.8s ease-in-out infinite;
+}
+
+/* ===== Marquee ===== */
+@keyframes marquee-roll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee-roll 20s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ===== AI Pulse ===== */
+@keyframes ai-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(26, 122, 58, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(26, 122, 58, 0);
+  }
+}
+.animate-ai-pulse {
+  animation: ai-pulse 2s ease-in-out infinite;
+}
+
+/* ===== Float Animation ===== */
+@keyframes float-card {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* ===== Page spacing ===== */
+.page-content {
+  padding-top: var(--nav-h);
+  padding-bottom: var(--bar-h);
+  min-height: 100vh;
+}
