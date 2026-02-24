@@ -1,20 +1,33 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 
+interface StripeStatus {
+  connected: boolean;
+  chargesEnabled: boolean;
+  detailsSubmitted: boolean;
+  stripeAccountId: string | null;
+}
+
 export default function SettingsPage() {
   const { user, profile } = useAuth();
   const supabase = createClient();
+  const searchParams = useSearchParams();
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
   const [website, setWebsite] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
+
+  // Stripe Connect state
+  const [stripeStatus, setStripeStatus] = useState<StripeStatus | null>(null);
+  const [connectingStripe, setConnectingStripe] = useState(false);
 
   // Load profile data into form
   useEffect(() => {
@@ -25,6 +38,30 @@ export default function SettingsPage() {
       setWalletAddress(profile.wallet_address || '');
     }
   }, [profile]);
+
+  // Check Stripe Connect status
+  useEffect(() => {
+    const checkStripe = async () => {
+      try {
+        const res = await fetch('/api/stripe/connect');
+        if (res.ok) {
+          const data = await res.json();
+          setStripeStatus(data);
+        }
+      } catch {
+        // Stripe check failed silently
+      }
+    };
+
+    if (user) checkStripe();
+  }, [user]);
+
+  // Show toast from stripe return
+  useEffect(() => {
+    if (searchParams.get('stripe') === 'connected') {
+      showToast('Stripe connected successfully');
+    }
+  }, [searchParams]);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -82,6 +119,23 @@ export default function SettingsPage() {
       showToast('Failed to update avatar');
     } else {
       showToast('Avatar updated');
+    }
+  };
+
+  const handleConnectStripe = async () => {
+    setConnectingStripe(true);
+    try {
+      const res = await fetch('/api/stripe/connect', { method: 'POST' });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        showToast('Failed to start Stripe onboarding');
+        setConnectingStripe(false);
+      }
+    } catch {
+      showToast('Failed to connect Stripe');
+      setConnectingStripe(false);
     }
   };
 
@@ -158,10 +212,52 @@ export default function SettingsPage() {
             <div className="font-[family-name:var(--font-syne)] text-[11px] font-bold mb-1">
               Stripe Connect
             </div>
-            <p className="text-[12px] text-[#888] mb-3">
-              Connect your Stripe account to receive card payments.
-            </p>
-            <Button size="sm">Connect Stripe →</Button>
+
+            {stripeStatus?.connected && stripeStatus.chargesEnabled ? (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-2 h-2 rounded-full bg-[#22c55e]" />
+                  <span className="text-[12px] text-[#22c55e] font-[family-name:var(--font-syne)] font-bold">
+                    Connected
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#888] mb-2">
+                  Your Stripe account is active. You can receive card payments.
+                </p>
+                <a
+                  href="https://dashboard.stripe.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-[family-name:var(--font-syne)] text-[10px] font-bold text-[#635BFF] no-underline hover:opacity-70 transition-opacity"
+                >
+                  View Stripe Dashboard &rarr;
+                </a>
+              </>
+            ) : stripeStatus?.connected && !stripeStatus.chargesEnabled ? (
+              <>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-2 h-2 rounded-full bg-[#f59e0b]" />
+                  <span className="text-[12px] text-[#f59e0b] font-[family-name:var(--font-syne)] font-bold">
+                    Setup Incomplete
+                  </span>
+                </div>
+                <p className="text-[12px] text-[#888] mb-3">
+                  Complete your Stripe onboarding to start receiving payments.
+                </p>
+                <Button size="sm" onClick={handleConnectStripe} disabled={connectingStripe}>
+                  {connectingStripe ? 'Redirecting...' : 'Complete Setup \u2192'}
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-[12px] text-[#888] mb-3">
+                  Connect your Stripe account to receive card payments.
+                </p>
+                <Button size="sm" onClick={handleConnectStripe} disabled={connectingStripe}>
+                  {connectingStripe ? 'Redirecting...' : 'Connect Stripe \u2192'}
+                </Button>
+              </>
+            )}
           </div>
         </section>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { ApplePayButton } from './ApplePayButton';
 import { USDCPayment } from './USDCPayment';
@@ -13,38 +13,90 @@ interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   paymentIntent: PaymentIntent | null;
+  onPurchaseComplete?: () => void;
 }
 
-export function PaymentModal({ isOpen, onClose, paymentIntent }: PaymentModalProps) {
-  const [activeMethod, setActiveMethod] = useState<PaymentMethod>('usdc');
+export function PaymentModal({ isOpen, onClose, paymentIntent, onPurchaseComplete }: PaymentModalProps) {
+  const [activeMethod, setActiveMethod] = useState<PaymentMethod>('card');
   const [success, setSuccess] = useState(false);
   const [txSignature, setTxSignature] = useState<string | null>(null);
+
+  // Stripe state
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripeError, setStripeError] = useState<string | null>(null);
+
+  const createPaymentIntent = useCallback(async () => {
+    if (!paymentIntent?.designId) return;
+
+    setStripeLoading(true);
+    setStripeError(null);
+
+    try {
+      const res = await fetch('/api/stripe/payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ designId: paymentIntent.designId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStripeError(data.error || 'Failed to prepare payment');
+        return;
+      }
+
+      setClientSecret(data.clientSecret);
+    } catch {
+      setStripeError('Failed to connect to payment server');
+    } finally {
+      setStripeLoading(false);
+    }
+  }, [paymentIntent?.designId]);
+
+  // Create PaymentIntent when modal opens and card/apple_pay is selected
+  useEffect(() => {
+    if (isOpen && paymentIntent?.designId && (activeMethod === 'card' || activeMethod === 'apple_pay')) {
+      if (!clientSecret) {
+        createPaymentIntent();
+      }
+    }
+  }, [isOpen, paymentIntent?.designId, activeMethod, clientSecret, createPaymentIntent]);
 
   if (!paymentIntent) return null;
 
   const handleSuccess = (signature?: string) => {
     if (signature) setTxSignature(signature);
     setSuccess(true);
+    onPurchaseComplete?.();
   };
 
   const handleClose = () => {
     setSuccess(false);
     setTxSignature(null);
-    setActiveMethod('usdc');
+    setClientSecret(null);
+    setStripeError(null);
+    setActiveMethod('card');
     onClose();
   };
 
+  const handleDownload = () => {
+    if (paymentIntent.designId) {
+      window.open(`/api/designs/${paymentIntent.designId}/download`, '_blank');
+    }
+  };
+
   const methods: { id: PaymentMethod; label: string; icon?: string; badge?: string }[] = [
-    { id: 'usdc', label: 'USDC', badge: '-5%' },
-    { id: 'apple_pay', label: 'Apple Pay', icon: '\uF8FF' },
     { id: 'card', label: 'Card' },
+    { id: 'apple_pay', label: 'Apple Pay', icon: '\uF8FF' },
+    { id: 'usdc', label: 'USDC', badge: '-5%' },
   ];
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
       {success ? (
         <div className="text-center py-9 px-6">
-          <div className="text-[52px] mb-4">🎉</div>
+          <div className="text-[52px] mb-4">&#x1F389;</div>
           <div className="font-[family-name:var(--font-syne)] text-[20px] font-extrabold tracking-[-0.02em] mb-2">
             Purchase complete!
           </div>
@@ -65,12 +117,22 @@ export function PaymentModal({ isOpen, onClose, paymentIntent }: PaymentModalPro
             </a>
           )}
 
-          <button
-            onClick={handleClose}
-            className="font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.06em] px-7 py-3 bg-[#0a0a0a] text-white rounded-full border-none cursor-pointer hover:bg-[#333] transition-colors"
-          >
-            Done
-          </button>
+          <div className="flex flex-col gap-2">
+            {paymentIntent.designId && (
+              <button
+                onClick={handleDownload}
+                className="font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.06em] px-7 py-3 bg-[#0a0a0a] text-white rounded-full border-none cursor-pointer hover:bg-[#333] transition-colors"
+              >
+                Download Now &darr;
+              </button>
+            )}
+            <button
+              onClick={handleClose}
+              className="font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.06em] px-7 py-3 bg-white text-[#999] rounded-full border-[1.5px] border-[#e8e8e8] cursor-pointer hover:border-[#0a0a0a] hover:text-[#0a0a0a] transition-all"
+            >
+              Done
+            </button>
+          </div>
         </div>
       ) : (
         <>
@@ -118,22 +180,59 @@ export function PaymentModal({ isOpen, onClose, paymentIntent }: PaymentModalPro
             </div>
 
             {/* Panels */}
+            {activeMethod === 'card' && (
+              stripeLoading ? (
+                <div className="py-8 text-center">
+                  <div className="font-[family-name:var(--font-syne)] text-[12px] text-[#999]">
+                    Preparing payment...
+                  </div>
+                </div>
+              ) : stripeError ? (
+                <div className="py-8 text-center">
+                  <div className="font-[family-name:var(--font-syne)] text-[12px] text-[#E8001A] font-bold mb-3">
+                    {stripeError}
+                  </div>
+                  <button
+                    onClick={createPaymentIntent}
+                    className="font-[family-name:var(--font-syne)] text-[10px] font-bold text-[#0a0a0a] underline cursor-pointer bg-transparent border-none"
+                  >
+                    Try again
+                  </button>
+                </div>
+              ) : clientSecret ? (
+                <CardPayment
+                  clientSecret={clientSecret}
+                  amount={paymentIntent.itemPrice}
+                  onSuccess={() => handleSuccess()}
+                />
+              ) : null
+            )}
+            {activeMethod === 'apple_pay' && (
+              stripeLoading ? (
+                <div className="py-8 text-center">
+                  <div className="font-[family-name:var(--font-syne)] text-[12px] text-[#999]">
+                    Preparing payment...
+                  </div>
+                </div>
+              ) : stripeError ? (
+                <div className="py-8 text-center">
+                  <div className="font-[family-name:var(--font-syne)] text-[12px] text-[#E8001A] font-bold">
+                    {stripeError}
+                  </div>
+                </div>
+              ) : clientSecret ? (
+                <ApplePayButton
+                  clientSecret={clientSecret}
+                  amount={paymentIntent.itemPrice}
+                  onSuccess={() => handleSuccess()}
+                />
+              ) : null
+            )}
             {activeMethod === 'usdc' && (
               <USDCPayment
                 amount={paymentIntent.itemPrice}
+                designId={paymentIntent.designId}
                 onSuccess={handleSuccess}
-              />
-            )}
-            {activeMethod === 'apple_pay' && (
-              <ApplePayButton
-                amount={paymentIntent.itemPrice}
-                onSuccess={() => handleSuccess()}
-              />
-            )}
-            {activeMethod === 'card' && (
-              <CardPayment
-                amount={paymentIntent.itemPrice}
-                onSuccess={() => handleSuccess()}
               />
             )}
           </div>

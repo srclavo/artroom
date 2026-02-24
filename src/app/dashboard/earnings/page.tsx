@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { EarningsChart } from '@/components/dashboard/EarningsChart';
 import { StatsCards } from '@/components/dashboard/StatsCards';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
+import { ROUTES } from '@/constants/routes';
 
 interface Transaction {
   id: string;
@@ -33,6 +35,25 @@ export default function EarningsPage() {
     { label: 'Avg. Per Sale', value: '—', change: '', isPositive: true },
   ]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [stripeConnected, setStripeConnected] = useState<boolean | null>(null);
+
+  // Check Stripe Connect status
+  useEffect(() => {
+    const checkStripe = async () => {
+      try {
+        const res = await fetch('/api/stripe/connect');
+        if (res.ok) {
+          const data = await res.json();
+          setStripeConnected(data.chargesEnabled === true);
+        } else {
+          setStripeConnected(false);
+        }
+      } catch {
+        setStripeConnected(false);
+      }
+    };
+    checkStripe();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -101,6 +122,25 @@ export default function EarningsPage() {
       <h1 className="font-[family-name:var(--font-syne)] text-[22px] font-bold mb-6">
         Earnings
       </h1>
+
+      {stripeConnected === false && (
+        <div className="mb-6 rounded-[14px] border border-[#e8e8e8] bg-[#fafafa] p-5 flex items-center justify-between gap-4">
+          <div>
+            <div className="font-[family-name:var(--font-syne)] text-[13px] font-bold text-[#0a0a0a] mb-1">
+              Connect Stripe to receive payments
+            </div>
+            <p className="font-[family-name:var(--font-dm-sans)] text-[12px] text-[#888] leading-[1.6] m-0">
+              Set up your Stripe account to receive card and Apple Pay payouts directly to your bank.
+            </p>
+          </div>
+          <Link
+            href={ROUTES.dashboardSettings}
+            className="flex-shrink-0 font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.06em] bg-[#0a0a0a] text-white px-5 py-2.5 rounded-[10px] no-underline hover:opacity-80 transition-opacity"
+          >
+            Connect Stripe
+          </Link>
+        </div>
+      )}
 
       <StatsCards stats={stats} />
 

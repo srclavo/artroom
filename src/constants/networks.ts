@@ -43,4 +43,4 @@ export const NETWORK_MAP = Object.fromEntries(
   NETWORKS.map((n) => [n.id, n])
 );
 
-export const PLATFORM_FEE_PERCENT = 15;
+export const PLATFORM_FEE_PERCENT = 12;

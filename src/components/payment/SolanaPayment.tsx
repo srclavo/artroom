@@ -6,10 +6,11 @@ import { SOLANA_CONFIG } from '@/constants/solana';
 
 interface SolanaPaymentProps {
   amount: number;
+  designId?: string;
   onSuccess: (signature: string) => void;
 }
 
-export function SolanaPayment({ amount, onSuccess }: SolanaPaymentProps) {
+export function SolanaPayment({ amount, designId, onSuccess }: SolanaPaymentProps) {
   const wallet = useSolanaWallet();
   const [payState, setPayState] = useState<
     'idle' | 'preparing' | 'signing' | 'confirmed' | 'error'
@@ -90,6 +91,20 @@ export function SolanaPayment({ amount, onSuccess }: SolanaPaymentProps) {
       setErrorMsg('');
       setPayState('signing');
       const signature = await wallet.transferSOL(amount);
+
+      // Record purchase in database
+      if (designId) {
+        try {
+          await fetch('/api/purchases/solana', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ designId, txSignature: signature, amount }),
+          });
+        } catch {
+          // Purchase recording failed but payment went through
+        }
+      }
+
       setPayState('confirmed');
       onSuccess(signature);
     } catch (err: unknown) {

@@ -11,6 +11,9 @@ importers:
       '@solana/web3.js':
         specifier: ^1.98.4
         version: 1.98.4(bufferutil@4.1.0)(typescript@5.9.3)(utf-8-validate@5.0.10)
+      '@stripe/react-stripe-js':
+        specifier: ^5.6.0
+        version: 5.6.0(@stripe/stripe-js@8.8.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@stripe/stripe-js':
         specifier: ^8.8.0
         version: 8.8.0
@@ -654,6 +657,13 @@ packages:
 
   '@solana/web3.js@1.98.4':
     resolution: {integrity: sha512-vv9lfnvjUsRiq//+j5pBdXig0IQdtzA0BRZ3bXEP4KaIyF1CcaydWqgyzQgfZMNIsWNWmG+AUHwPy4AHOD6gpw==}
+
+  '@stripe/react-stripe-js@5.6.0':
+    resolution: {integrity: sha512-tucu/vTGc+5NXbo2pUiaVjA4ENdRBET8qGS00BM4BAU8J4Pi3eY6BHollsP2+VSuzzlvXwMg0it3ZLhbCj2fPg==}
+    peerDependencies:
+      '@stripe/stripe-js': '>=8.0.0 <9.0.0'
+      react: '>=16.8.0 <20.0.0'
+      react-dom: '>=16.8.0 <20.0.0'
 
   '@stripe/stripe-js@8.8.0':
     resolution: {integrity: sha512-NNYuyW8qmLjyHnpyFgs/23wUrjB8k0xN9YIZFOMLewCa/pIkIji9e9aY/EgdNryEDDRptc6TcPIHRvG1R0ClFw==}
@@ -2963,6 +2973,13 @@ snapshots:
       - encoding
       - typescript
       - utf-8-validate
+
+  '@stripe/react-stripe-js@5.6.0(@stripe/stripe-js@8.8.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      '@stripe/stripe-js': 8.8.0
+      prop-types: 15.8.1
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
 
   '@stripe/stripe-js@8.8.0': {}
 

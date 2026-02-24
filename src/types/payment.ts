@@ -13,6 +13,13 @@ export interface PaymentIntent {
   creatorUsername: string;
   designId?: string;
   portfolioId?: string;
+  creatorStripeAccountId?: string;
+}
+
+export interface StripePaymentData {
+  clientSecret: string;
+  paymentIntentId: string;
+  amount: number;
 }
 
 export interface USDCPaymentDetails {

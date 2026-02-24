@@ -2,15 +2,24 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, Menu, X } from 'lucide-react';
+import { Search, Menu, X, ShoppingBag, Bell } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { MobileNav } from './MobileNav';
 import { WalletButton } from './WalletButton';
+import { CartDrawer } from '@/components/cart/CartDrawer';
+import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
+import { useCart } from '@/contexts/CartContext';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { itemCount } = useCart();
+  const { unreadCount } = useNotifications();
 
   const openSearch = useCallback(() => {
     setSearchOpen(true);
@@ -65,7 +74,36 @@ export function Navbar() {
           </Link>
 
           {/* Right */}
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex items-center justify-end gap-2.5">
+            {/* Notifications */}
+            <div className="relative hidden sm:block">
+              <button
+                onClick={() => { setNotifOpen(!notifOpen); setCartOpen(false); }}
+                className="w-8 h-8 rounded-full border border-[#e8e8e8] flex items-center justify-center bg-transparent cursor-pointer hover:border-[#0a0a0a] hover:bg-[#f5f5f5] transition-all relative"
+              >
+                <Bell size={13} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-[14px] h-[14px] rounded-full bg-[#E8001A] text-white text-[7px] font-bold flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              <NotificationDropdown isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
+            </div>
+
+            {/* Cart */}
+            <button
+              onClick={() => { setCartOpen(true); setNotifOpen(false); }}
+              className="w-8 h-8 rounded-full border border-[#e8e8e8] flex items-center justify-center bg-transparent cursor-pointer hover:border-[#0a0a0a] hover:bg-[#f5f5f5] transition-all relative hidden sm:flex"
+            >
+              <ShoppingBag size={13} />
+              {itemCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-[14px] h-[14px] rounded-full bg-[#0a0a0a] text-white text-[7px] font-bold flex items-center justify-center">
+                  {itemCount > 9 ? '9+' : itemCount}
+                </span>
+              )}
+            </button>
+
             <WalletButton />
 
             {/* Open Studio Sign */}
@@ -143,6 +181,7 @@ export function Navbar() {
       )}
 
       <MobileNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
     </>
   );
 }

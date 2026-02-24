@@ -24,7 +24,7 @@ export function truncateAddress(address: string, chars = 6): string {
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
 
-export function calculatePlatformFee(amount: number, feePercent = 15): {
+export function calculatePlatformFee(amount: number, feePercent = 12): {
   fee: number;
   payout: number;
 } {

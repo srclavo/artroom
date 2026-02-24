@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Heart } from 'lucide-react';
+import { ArrowLeft, Heart, ShoppingBag, Download } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +10,8 @@ import { PaymentModal } from '@/components/payment/PaymentModal';
 import { usePayment } from '@/hooks/usePayment';
 import { useAuth } from '@/hooks/useAuth';
 import { useLike } from '@/hooks/useLike';
+import { usePurchase } from '@/hooks/usePurchase';
+import { useCart } from '@/contexts/CartContext';
 import { createClient } from '@/lib/supabase/client';
 import { CATEGORY_MAP } from '@/constants/categories';
 import { formatCompactNumber } from '@/lib/utils';
@@ -32,6 +34,8 @@ export default function DesignDetailPage({
   const [loading, setLoading] = useState(true);
 
   const { liked, likeCount, toggleLike } = useLike(id, user?.id);
+  const { hasPurchased, isOwner, recheck: recheckPurchase } = usePurchase(id);
+  const { addItem, isInCart } = useCart();
 
   useEffect(() => {
     const fetchDesign = async () => {
@@ -229,12 +233,41 @@ export default function DesignDetailPage({
 
           {/* Actions */}
           <div className="flex flex-col gap-2 mt-auto">
-            <Button className="w-full" size="lg" onClick={handleBuy}>
-              Buy for ${design.price} →
-            </Button>
-            <Button variant="outline" className="w-full" size="lg">
-              Save to Library
-            </Button>
+            {hasPurchased || isOwner ? (
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={() => window.open(`/api/designs/${design.id}/download`, '_blank')}
+              >
+                <Download size={14} className="mr-1.5" />
+                Download
+              </Button>
+            ) : (
+              <>
+                <Button className="w-full" size="lg" onClick={handleBuy}>
+                  Buy for ${design.price} &rarr;
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  size="lg"
+                  onClick={() => {
+                    addItem({
+                      designId: design.id,
+                      title: design.title,
+                      price: design.price,
+                      thumbnailUrl: design.thumbnail_url,
+                      creatorUsername: design.creator.username,
+                      category: design.category,
+                    });
+                  }}
+                  disabled={isInCart(design.id)}
+                >
+                  <ShoppingBag size={14} className="mr-1.5" />
+                  {isInCart(design.id) ? 'In Cart' : 'Add to Cart'}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -316,7 +349,7 @@ export default function DesignDetailPage({
         </div>
       )}
 
-      <PaymentModal isOpen={isOpen} onClose={closePayment} paymentIntent={paymentIntent} />
+      <PaymentModal isOpen={isOpen} onClose={closePayment} paymentIntent={paymentIntent} onPurchaseComplete={recheckPurchase} />
     </div>
   );
 }
