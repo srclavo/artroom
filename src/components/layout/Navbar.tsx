@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Search, Menu, X } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { MobileNav } from './MobileNav';
+import { WalletButton } from './WalletButton';
 
 export function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -65,6 +66,8 @@ export function Navbar() {
 
           {/* Right */}
           <div className="flex items-center justify-end gap-3">
+            <WalletButton />
+
             {/* Open Studio Sign */}
             <Link
               href={ROUTES.dashboard}

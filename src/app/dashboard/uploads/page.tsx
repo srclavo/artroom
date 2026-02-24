@@ -2,9 +2,13 @@
 
 import { useState, useCallback } from 'react';
 import { X } from 'lucide-react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { CATEGORIES } from '@/constants/categories';
+import { ROUTES } from '@/constants/routes';
+import { useAuth } from '@/hooks/useAuth';
+import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 
 interface UploadedFile {
@@ -12,6 +16,7 @@ interface UploadedFile {
   size: string;
   type: string;
   icon: string;
+  file: File;
 }
 
 const FILE_ICONS: Record<string, string> = {
@@ -19,6 +24,8 @@ const FILE_ICONS: Record<string, string> = {
 };
 
 export default function UploadsPage() {
+  const { user } = useAuth();
+  const supabase = createClient();
   const [step, setStep] = useState(1);
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [title, setTitle] = useState('');
@@ -27,8 +34,12 @@ export default function UploadsPage() {
   const [tags, setTags] = useState('');
   const [pricingType, setPricingType] = useState<'paid' | 'free' | 'donate'>('paid');
   const [price, setPrice] = useState('49');
+  const [licenseType, setLicenseType] = useState('personal');
   const [isDragging, setIsDragging] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
+  const [publishedDesignId, setPublishedDesignId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -40,12 +51,95 @@ export default function UploadsPage() {
         size: `${(f.size / (1024 * 1024)).toFixed(1)} MB`,
         type: ext,
         icon: FILE_ICONS[ext] ?? '📁',
+        file: f,
       };
     });
     setFiles((prev) => [...prev, ...droppedFiles]);
   }, []);
 
   const removeFile = (index: number) => setFiles((prev) => prev.filter((_, i) => i !== index));
+
+  const handlePublish = async () => {
+    if (!user || !files.length || !title || !selectedCategory) {
+      setError('Please fill in all required fields (title, category, and at least one file).');
+      return;
+    }
+
+    setIsPublishing(true);
+    setError(null);
+
+    try {
+      // Upload thumbnail (first file) to Supabase Storage
+      const thumbnailFile = files[0].file;
+      const thumbnailExt = thumbnailFile.name.split('.').pop();
+      const thumbnailPath = `${user.id}/${Date.now()}-thumbnail.${thumbnailExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('thumbnails')
+        .upload(thumbnailPath, thumbnailFile);
+
+      if (uploadError) throw new Error(`Thumbnail upload failed: ${uploadError.message}`);
+
+      const { data: urlData } = supabase.storage
+        .from('thumbnails')
+        .getPublicUrl(thumbnailPath);
+
+      const thumbnailUrl = urlData.publicUrl;
+
+      // Upload design files (all files) to private storage
+      let fileUrl: string | null = null;
+      let fileSize: number | null = null;
+      let fileFormat: string | null = null;
+
+      if (files.length > 1 || files[0].file.size > 0) {
+        const designFile = files[files.length > 1 ? 1 : 0].file;
+        const designExt = designFile.name.split('.').pop();
+        const designPath = `${user.id}/${Date.now()}-design.${designExt}`;
+
+        const { error: fileError } = await supabase.storage
+          .from('design-files')
+          .upload(designPath, designFile);
+
+        if (!fileError) {
+          fileUrl = designPath;
+          fileSize = designFile.size;
+          fileFormat = designExt?.toUpperCase() ?? null;
+        }
+      }
+
+      // Create design row in database
+      const tagList = tags.split(',').map((t) => t.trim()).filter(Boolean);
+
+      const { data: design, error: insertError } = await supabase
+        .from('designs')
+        .insert({
+          creator_id: user.id,
+          title,
+          description: description || null,
+          price: pricingType === 'free' ? 0 : parseFloat(price) || 0,
+          category: selectedCategory,
+          tags: tagList,
+          thumbnail_url: thumbnailUrl,
+          file_url: fileUrl,
+          file_size: fileSize,
+          file_format: fileFormat,
+          license_type: licenseType as 'personal' | 'commercial' | 'extended',
+          status: 'published',
+        } as never)
+        .select()
+        .single();
+
+      if (insertError) throw new Error(`Failed to create listing: ${insertError.message}`);
+
+      const created = design as unknown as { id: string } | null;
+      setPublishedDesignId(created?.id ?? null);
+      setIsPublished(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   const priceNum = parseFloat(price) || 0;
   const earnings = pricingType === 'paid' ? (priceNum * 0.85).toFixed(2) : '0';
@@ -61,6 +155,12 @@ export default function UploadsPage() {
         <p className="text-[14px] font-light text-[#999] leading-[1.75] mb-6">
           List your design work in the ArtRoom Gallery.
         </p>
+
+        {error && (
+          <div className="mb-4 p-3 bg-[#FEF2F2] border border-[#E8001A]/20 rounded-lg text-[12px] text-[#E8001A]">
+            {error}
+          </div>
+        )}
 
         {/* Steps */}
         <div className="flex border-b border-[#e8e8e8] mb-6">
@@ -137,7 +237,7 @@ export default function UploadsPage() {
                   if (e.target.files) {
                     const newFiles = Array.from(e.target.files).map((f) => {
                       const ext = f.name.split('.').pop()?.toUpperCase() ?? 'FILE';
-                      return { name: f.name, size: `${(f.size / (1024 * 1024)).toFixed(1)} MB`, type: ext, icon: FILE_ICONS[ext] ?? '📁' };
+                      return { name: f.name, size: `${(f.size / (1024 * 1024)).toFixed(1)} MB`, type: ext, icon: FILE_ICONS[ext] ?? '📁', file: f };
                     });
                     setFiles((prev) => [...prev, ...newFiles]);
                   }
@@ -244,10 +344,14 @@ export default function UploadsPage() {
                 </div>
                 <div>
                   <label className="block mb-1.5 font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.12em] text-[#999]">License</label>
-                  <select className="w-full py-[11px] px-3 border border-[#e8e8e8] rounded-[8px] font-[family-name:var(--font-dm-sans)] text-[13px] text-[#111] outline-none focus:border-[#0a0a0a] transition-all bg-white appearance-none cursor-pointer">
-                    <option>Personal Use</option>
-                    <option>Commercial Use</option>
-                    <option>Extended License</option>
+                  <select
+                    value={licenseType}
+                    onChange={(e) => setLicenseType(e.target.value)}
+                    className="w-full py-[11px] px-3 border border-[#e8e8e8] rounded-[8px] font-[family-name:var(--font-dm-sans)] text-[13px] text-[#111] outline-none focus:border-[#0a0a0a] transition-all bg-white appearance-none cursor-pointer"
+                  >
+                    <option value="personal">Personal Use</option>
+                    <option value="commercial">Commercial Use</option>
+                    <option value="extended">Extended License</option>
                   </select>
                 </div>
               </div>
@@ -265,7 +369,9 @@ export default function UploadsPage() {
             <div className="flex gap-2 mt-5">
               <Button variant="outline" onClick={() => setStep(2)}>← Back</Button>
               <Button variant="outline">Save Draft</Button>
-              <Button onClick={() => setIsPublished(true)}>Publish →</Button>
+              <Button onClick={handlePublish} disabled={isPublishing}>
+                {isPublishing ? 'Publishing...' : 'Publish →'}
+              </Button>
             </div>
           </div>
         )}
@@ -277,8 +383,18 @@ export default function UploadsPage() {
             <h2 className="font-[family-name:var(--font-syne)] text-[28px] font-extrabold tracking-[-0.02em] mb-2">You&apos;re live!</h2>
             <p className="text-[13px] text-[#888] leading-[1.65] max-w-[340px] mb-6">Your listing is now live in the ArtRoom Gallery. Share it with the world!</p>
             <div className="flex gap-2">
-              <Button>View in Gallery</Button>
-              <Button variant="outline">Open My Studio</Button>
+              {publishedDesignId ? (
+                <Link href={ROUTES.design(publishedDesignId)}>
+                  <Button>View in Gallery</Button>
+                </Link>
+              ) : (
+                <Link href={ROUTES.home}>
+                  <Button>View Gallery</Button>
+                </Link>
+              )}
+              <Link href={ROUTES.dashboard}>
+                <Button variant="outline">Open My Studio</Button>
+              </Link>
             </div>
           </div>
         )}

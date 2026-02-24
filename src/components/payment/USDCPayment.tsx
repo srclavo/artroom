@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { NetworkSelector } from './NetworkSelector';
+import { SolanaPayment } from './SolanaPayment';
 import { NETWORK_MAP } from '@/constants/networks';
 import type { CryptoNetwork } from '@/types/payment';
 
 interface USDCPaymentProps {
   amount: number;
-  onSuccess: () => void;
+  onSuccess: (txSignature?: string) => void;
 }
 
 const MOCK_ADDRESSES: Record<CryptoNetwork, string> = {
@@ -20,6 +21,21 @@ const MOCK_ADDRESSES: Record<CryptoNetwork, string> = {
 export function USDCPayment({ amount, onSuccess }: USDCPaymentProps) {
   const [network, setNetwork] = useState<CryptoNetwork>('solana');
   const [copied, setCopied] = useState(false);
+
+  // Solana selected — use real Phantom payment flow
+  if (network === 'solana') {
+    return (
+      <div>
+        <NetworkSelector activeNetwork={network} onNetworkChange={setNetwork} />
+        <SolanaPayment
+          amount={amount}
+          onSuccess={(signature) => onSuccess(signature)}
+        />
+      </div>
+    );
+  }
+
+  // Other networks — existing mock copy-address flow
   const networkConfig = NETWORK_MAP[network];
   const address = MOCK_ADDRESSES[network];
 
@@ -31,10 +47,8 @@ export function USDCPayment({ amount, onSuccess }: USDCPaymentProps) {
 
   return (
     <div>
-      {/* Network selector */}
       <NetworkSelector activeNetwork={network} onNetworkChange={setNetwork} />
 
-      {/* Amount display */}
       <div className="bg-[#f9f7ff] rounded-[10px] p-3.5 mb-3 border border-dashed border-[#ede8ff]">
         <div className="flex items-baseline gap-1.5 mb-2">
           <span className="font-[family-name:var(--font-dm-mono)] text-[24px] font-medium text-[#111]">
@@ -51,7 +65,6 @@ export function USDCPayment({ amount, onSuccess }: USDCPaymentProps) {
           </span>
         </div>
 
-        {/* Wallet address */}
         <div className="flex items-center gap-2">
           <span className="font-[family-name:var(--font-dm-mono)] text-[10px] text-[#666] break-all flex-1">
             {address}
@@ -60,12 +73,11 @@ export function USDCPayment({ amount, onSuccess }: USDCPaymentProps) {
             onClick={handleCopy}
             className="font-[family-name:var(--font-syne)] text-[9px] font-bold px-3 py-1 border-[1.5px] border-[#e0e0e0] rounded-full bg-white cursor-pointer hover:bg-[#0a0a0a] hover:text-white hover:border-[#0a0a0a] transition-all whitespace-nowrap"
           >
-            {copied ? 'Copied ✓' : 'Copy'}
+            {copied ? 'Copied \u2713' : 'Copy'}
           </button>
         </div>
       </div>
 
-      {/* Timer */}
       <div className="flex items-center gap-2 mb-3">
         <span
           className="w-[7px] h-[7px] rounded-full animate-pulse"
@@ -75,16 +87,16 @@ export function USDCPayment({ amount, onSuccess }: USDCPaymentProps) {
           }}
         />
         <span className="text-[11px] text-[#888]">
-          Waiting for payment · Expires in 14:59
+          Waiting for payment &middot; Expires in 14:59
         </span>
       </div>
 
       <button
-        onClick={onSuccess}
+        onClick={() => onSuccess()}
         className="w-full py-3 rounded-[13px] border-none text-white font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.06em] cursor-pointer hover:opacity-90 transition-opacity"
         style={{ backgroundColor: networkConfig.color }}
       >
-        I&apos;ve Sent USDC →
+        I&apos;ve Sent USDC &rarr;
       </button>
 
       <p className="text-[10px] text-[#bbb] text-center mt-2">

@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { Avatar } from '@/components/ui/Avatar';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 import { ROUTES } from '@/constants/routes';
 
 const NAV_SECTIONS = [
@@ -45,14 +47,37 @@ const NAV_SECTIONS = [
   },
 ];
 
-const AVATAR_COLORS = ['#FFB3C6', '#1B4FE8', '#FFE500', '#E8001A', '#1A7A3C', '#7B3FA0', '#FF5F1F', '#0D1B4B'];
-
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, profile, loading, signOut } = useAuth();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push(ROUTES.login);
+    }
+  }, [loading, user, router]);
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="page-content flex items-center justify-center min-h-[60vh]">
+          <div className="font-[family-name:var(--font-syne)] text-[13px] text-[#999]">Loading...</div>
+        </div>
+      </>
+    );
+  }
+
+  if (!user) return null;
+
+  const displayName = profile?.display_name || profile?.username || 'Creator';
+  const username = profile?.username || 'user';
 
   return (
     <>
@@ -63,42 +88,20 @@ export default function DashboardLayout({
           {/* Profile */}
           <div className="p-5 pb-4 border-b border-[#e8e8e8]">
             <Avatar
-              name="Maya Chen"
+              name={displayName}
               size="lg"
               color="#FFB3C6"
               className="mb-3"
             />
             <div className="font-[family-name:var(--font-syne)] text-[15px] font-bold">
-              Maya Chen
+              {displayName}
             </div>
-            <div className="text-[11px] text-[#999] mb-2">@maya.artroom</div>
+            <div className="text-[11px] text-[#999] mb-2">@{username}.artroom</div>
 
-            {/* Color swatches */}
-            <div className="flex gap-1.5 mb-3">
-              {AVATAR_COLORS.map((c) => (
-                <button
-                  key={c}
-                  className="w-4 h-4 rounded-full cursor-pointer border-none hover:scale-110 transition-transform"
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { n: '42', l: 'Works' },
-                { n: '12k', l: 'Followers' },
-                { n: '$4.8k', l: 'Earned' },
-              ].map((s) => (
-                <div key={s.l} className="text-center">
-                  <div className="font-[family-name:var(--font-syne)] text-[14px] font-bold">{s.n}</div>
-                  <div className="text-[8px] text-[#bbb] uppercase tracking-wider">{s.l}</div>
-                </div>
-              ))}
-            </div>
-
-            <button className="mt-3 w-full font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-1.5 rounded-full border-[1.5px] border-[#e0e0e0] bg-white text-[#888] cursor-pointer hover:border-[#0a0a0a] hover:text-[#0a0a0a] transition-all">
+            <button
+              onClick={() => router.push(ROUTES.dashboardSettings)}
+              className="mt-3 w-full font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-1.5 rounded-full border-[1.5px] border-[#e0e0e0] bg-white text-[#888] cursor-pointer hover:border-[#0a0a0a] hover:text-[#0a0a0a] transition-all"
+            >
               Edit Profile
             </button>
           </div>
@@ -132,6 +135,19 @@ export default function DashboardLayout({
               </div>
             ))}
           </nav>
+
+          {/* Logout */}
+          <div className="px-5 py-4 mt-auto border-t border-[#e8e8e8]">
+            <button
+              onClick={async () => {
+                await signOut();
+                router.push(ROUTES.home);
+              }}
+              className="w-full font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-1.5 rounded-full border-[1.5px] border-[#e0e0e0] bg-white text-[#999] cursor-pointer hover:border-[#E8001A] hover:text-[#E8001A] transition-all"
+            >
+              Log Out
+            </button>
+          </div>
         </aside>
 
         {/* Main content */}

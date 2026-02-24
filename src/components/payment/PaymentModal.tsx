@@ -5,6 +5,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ApplePayButton } from './ApplePayButton';
 import { USDCPayment } from './USDCPayment';
 import { CardPayment } from './CardPayment';
+import { explorerUrl } from '@/constants/solana';
 import { cn } from '@/lib/utils';
 import type { PaymentMethod, PaymentIntent } from '@/types/payment';
 
@@ -15,24 +16,27 @@ interface PaymentModalProps {
 }
 
 export function PaymentModal({ isOpen, onClose, paymentIntent }: PaymentModalProps) {
-  const [activeMethod, setActiveMethod] = useState<PaymentMethod>('apple_pay');
+  const [activeMethod, setActiveMethod] = useState<PaymentMethod>('usdc');
   const [success, setSuccess] = useState(false);
+  const [txSignature, setTxSignature] = useState<string | null>(null);
 
   if (!paymentIntent) return null;
 
-  const handleSuccess = () => {
+  const handleSuccess = (signature?: string) => {
+    if (signature) setTxSignature(signature);
     setSuccess(true);
   };
 
   const handleClose = () => {
     setSuccess(false);
-    setActiveMethod('apple_pay');
+    setTxSignature(null);
+    setActiveMethod('usdc');
     onClose();
   };
 
-  const methods: { id: PaymentMethod; label: string; icon?: string }[] = [
+  const methods: { id: PaymentMethod; label: string; icon?: string; badge?: string }[] = [
+    { id: 'usdc', label: 'USDC', badge: '-5%' },
     { id: 'apple_pay', label: 'Apple Pay', icon: '\uF8FF' },
-    { id: 'usdc', label: 'USDC' },
     { id: 'card', label: 'Card' },
   ];
 
@@ -49,6 +53,18 @@ export function PaymentModal({ isOpen, onClose, paymentIntent }: PaymentModalPro
             <br />
             Check your downloads or your library.
           </div>
+
+          {txSignature && (
+            <a
+              href={explorerUrl(txSignature)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block font-[family-name:var(--font-syne)] text-[11px] font-bold text-[#9945FF] mb-4 no-underline hover:opacity-70 transition-opacity"
+            >
+              View on Solana Explorer &rarr;
+            </a>
+          )}
+
           <button
             onClick={handleClose}
             className="font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.06em] px-7 py-3 bg-[#0a0a0a] text-white rounded-full border-none cursor-pointer hover:bg-[#333] transition-colors"
@@ -92,27 +108,32 @@ export function PaymentModal({ isOpen, onClose, paymentIntent }: PaymentModalPro
                 >
                   {m.icon && <span>{m.icon}</span>}
                   {m.label}
+                  {m.badge && (
+                    <span className="bg-[#22c55e] text-white text-[6px] font-bold px-1.5 py-px rounded-full ml-0.5">
+                      {m.badge}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
 
             {/* Panels */}
-            {activeMethod === 'apple_pay' && (
-              <ApplePayButton
-                amount={paymentIntent.itemPrice}
-                onSuccess={handleSuccess}
-              />
-            )}
             {activeMethod === 'usdc' && (
               <USDCPayment
                 amount={paymentIntent.itemPrice}
                 onSuccess={handleSuccess}
               />
             )}
+            {activeMethod === 'apple_pay' && (
+              <ApplePayButton
+                amount={paymentIntent.itemPrice}
+                onSuccess={() => handleSuccess()}
+              />
+            )}
             {activeMethod === 'card' && (
               <CardPayment
                 amount={paymentIntent.itemPrice}
-                onSuccess={handleSuccess}
+                onSuccess={() => handleSuccess()}
               />
             )}
           </div>

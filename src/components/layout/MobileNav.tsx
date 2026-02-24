@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { ROUTES } from '@/constants/routes';
+import { useAuth } from '@/hooks/useAuth';
+import { useSolanaWallet } from '@/contexts/SolanaWalletContext';
 import { cn } from '@/lib/utils';
 
 interface MobileNavProps {
@@ -14,12 +16,20 @@ const NAV_LINKS = [
   { label: 'Explore Gallery', href: ROUTES.gallery },
   { label: 'Skill Vault', href: ROUTES.skills },
   { label: 'Job Fair', href: ROUTES.jobs },
-  { label: 'My Studio', href: ROUTES.dashboard },
+  { label: 'My Studio', href: ROUTES.dashboard, authOnly: true },
+];
+
+const GUEST_LINKS = [
   { label: 'Login', href: ROUTES.login },
   { label: 'Register', href: ROUTES.register },
 ];
 
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
+  const { user, signOut } = useAuth();
+  const wallet = useSolanaWallet();
+
+  const isLoggedIn = !!user;
+
   return (
     <>
       {/* Backdrop overlay */}
@@ -39,7 +49,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         )}
       >
         <div className="flex flex-col p-7 gap-1">
-          {NAV_LINKS.map((link) => (
+          {NAV_LINKS.filter((link) => !link.authOnly || isLoggedIn).map((link) => (
             <Link
               key={link.label}
               href={link.href}
@@ -49,6 +59,51 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
               {link.label}
             </Link>
           ))}
+
+          {/* Guest links: Login / Register */}
+          {!isLoggedIn &&
+            GUEST_LINKS.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                onClick={onClose}
+                className="font-[family-name:var(--font-syne)] text-[16px] font-bold tracking-[0.01em] text-[#0a0a0a] no-underline py-3 border-b border-[#f2f2f2] hover:opacity-60 transition-opacity"
+              >
+                {link.label}
+              </Link>
+            ))}
+
+          {/* Log Out */}
+          {isLoggedIn && (
+            <button
+              onClick={async () => {
+                await signOut();
+                onClose();
+              }}
+              className="font-[family-name:var(--font-syne)] text-[16px] font-bold tracking-[0.01em] text-[#E8001A] bg-transparent border-none text-left py-3 border-b border-[#f2f2f2] cursor-pointer hover:opacity-60 transition-opacity"
+            >
+              Log Out
+            </button>
+          )}
+
+          {/* Wallet connect for mobile */}
+          {wallet.isPhantomInstalled && (
+            <button
+              onClick={() => {
+                if (wallet.isConnected) {
+                  wallet.disconnect();
+                } else {
+                  wallet.connect();
+                }
+                onClose();
+              }}
+              className="font-[family-name:var(--font-syne)] text-[16px] font-bold tracking-[0.01em] text-[#9945FF] bg-transparent border-none text-left py-3 border-b border-[#f2f2f2] cursor-pointer hover:opacity-60 transition-opacity"
+            >
+              {wallet.isConnected
+                ? `Disconnect (${wallet.displayAddress})`
+                : '\u25CE Connect Wallet'}
+            </button>
+          )}
         </div>
       </div>
     </>

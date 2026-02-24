@@ -1,40 +1,85 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { StatsCards } from '@/components/dashboard/StatsCards';
+import { useAuth } from '@/hooks/useAuth';
+import { createClient } from '@/lib/supabase/client';
+import { CATEGORY_MAP } from '@/constants/categories';
+import { ROUTES } from '@/constants/routes';
+import type { DesignWithCreator } from '@/types/design';
 
-const STATS = [
-  { label: 'Views Today', value: '1,247', change: '↑ +18% vs yesterday', isPositive: true },
-  { label: 'New Followers', value: '+38', change: '↑ +12% this week', isPositive: true },
-  { label: 'Earnings This Month', value: '$312', change: '↓ –4% vs last month', isPositive: false },
-];
-
-const WORK_SECTIONS = [
-  {
-    title: 'Brand Work ✦',
-    items: [
-      { label: 'a soft system', color: '#FFB3C6' },
-      { label: 'night shift', color: '#0D1B4B' },
-      { label: 'forma type', color: '#FFE500' },
-      { label: 'deep roots', color: '#1A7A3C' },
-      { label: 'signal work', color: '#E8001A' },
-    ],
-  },
-  {
-    title: 'Editorial ✳',
-    items: [
-      { label: 'void state', color: '#2E2E2E' },
-      { label: 'warm logic', color: '#E8D5B0' },
-      { label: 'heat index', color: '#FF5F1F' },
-    ],
-  },
-];
+interface WorkSection {
+  title: string;
+  items: DesignWithCreator[];
+}
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const supabase = createClient();
+  const [stats, setStats] = useState([
+    { label: 'Total Views', value: '—', change: '', isPositive: true },
+    { label: 'Followers', value: '—', change: '', isPositive: true },
+    { label: 'Earnings', value: '—', change: '', isPositive: true },
+  ]);
+  const [workSections, setWorkSections] = useState<WorkSection[]>([]);
   const [aiMessages, setAiMessages] = useState([
     { from: 'ai', text: 'Welcome to your studio! I can help you manage your portfolio, analyze trends, and optimize your listings. What would you like to work on?' },
   ]);
   const [aiInput, setAiInput] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchDashboardData = async () => {
+      // Fetch designs by the current user
+      const { data: designs } = await supabase
+        .from('designs')
+        .select(`
+          *,
+          creator:profiles!designs_creator_id_fkey (
+            id, username, display_name, avatar_url, is_verified
+          )
+        `)
+        .eq('creator_id', user.id)
+        .order('created_at', { ascending: false });
+
+      // Fetch follower count
+      const { count: followerCount } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', user.id);
+
+      const rows = (designs ?? []) as unknown as DesignWithCreator[];
+
+      if (rows.length > 0) {
+        const totalViews = rows.reduce((sum, d) => sum + (d.view_count ?? 0), 0);
+
+        setStats([
+          { label: 'Total Views', value: totalViews.toLocaleString(), change: `${rows.length} published`, isPositive: true },
+          { label: 'Followers', value: `${followerCount ?? 0}`, change: '', isPositive: true },
+          { label: 'Works', value: `${rows.length}`, change: '', isPositive: true },
+        ]);
+
+        // Group designs by category
+        const grouped: Record<string, DesignWithCreator[]> = {};
+        for (const d of rows) {
+          const cat = d.category || 'other';
+          if (!grouped[cat]) grouped[cat] = [];
+          grouped[cat].push(d);
+        }
+
+        const sections: WorkSection[] = Object.entries(grouped).map(([cat, items]) => ({
+          title: CATEGORY_MAP[cat]?.label ?? cat,
+          items,
+        }));
+
+        setWorkSections(sections);
+      }
+    };
+
+    fetchDashboardData();
+  }, [user]);
 
   const sendAI = () => {
     if (!aiInput.trim()) return;
@@ -52,7 +97,7 @@ export default function DashboardPage() {
         Studio Overview
       </h1>
 
-      <StatsCards stats={STATS} />
+      <StatsCards stats={stats} />
 
       {/* AI Panel */}
       <div className="mt-6 border border-[#e8e8e8] rounded-lg overflow-hidden">
@@ -104,56 +149,78 @@ export default function DashboardPage() {
       </div>
 
       {/* Work sections */}
-      {WORK_SECTIONS.map((section) => (
-        <div key={section.title} className="mt-8">
-          <div className="flex items-center gap-3 mb-4">
-            <h2 className="font-[family-name:var(--font-syne)] text-[13px] font-bold tracking-[0.03em]">
-              {section.title}
-            </h2>
-            <button className="ml-auto font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-1 rounded-full border-[1.5px] border-[#e8e8e8] bg-white text-[#888] cursor-pointer hover:border-[#0a0a0a] transition-all">
-              Rename
-            </button>
-            <button className="font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-1 rounded-full border-none bg-[#E8001A] text-white cursor-pointer hover:bg-[#c5001a] transition-colors">
-              + Upload
-            </button>
-          </div>
-          <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-2">
-            {section.items.map((item) => (
-              <div
-                key={item.label}
-                className="flex-shrink-0 w-[118px] rounded-[6px] border border-[#e8e8e8] overflow-hidden cursor-pointer hover:-translate-y-[3px] hover:shadow-[0_8px_22px_rgba(0,0,0,0.1)] transition-all group relative"
-              >
-                <div
-                  className="h-[88px] flex items-center justify-center"
-                  style={{ backgroundColor: item.color }}
-                >
-                  <span className="text-white/40 font-[family-name:var(--font-syne)] text-[22px] font-extrabold transition-transform group-hover:scale-110">
-                    {item.label.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div className="px-2.5 py-2 text-[10px] text-[#111] truncate bg-white whitespace-nowrap">
-                  {item.label}
-                </div>
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="font-[family-name:var(--font-syne)] text-[9px] font-bold text-white uppercase tracking-[0.08em]">
-                    Open ↗
-                  </span>
-                </div>
-              </div>
-            ))}
-            <button className="flex-shrink-0 w-[118px] h-[120px] rounded-[6px] border-[1.5px] border-dashed border-[#ddd] flex flex-col items-center justify-center text-[#ccc] cursor-pointer hover:border-[#0a0a0a] hover:text-[#0a0a0a] transition-all bg-transparent">
-              <span className="text-[20px]">+</span>
-              <span className="text-[10px] font-bold">Add Work</span>
-            </button>
-          </div>
+      {workSections.length === 0 ? (
+        <div className="mt-8 text-center py-12">
+          <div className="text-[32px] mb-3">🎨</div>
+          <p className="font-[family-name:var(--font-syne)] text-[14px] font-bold text-[#999] mb-2">No works yet</p>
+          <p className="text-[12px] text-[#ccc] mb-4">Upload your first design to get started</p>
+          <Link
+            href={ROUTES.dashboardUploads}
+            className="inline-block font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.06em] px-5 py-2.5 rounded-full bg-[#0a0a0a] text-white no-underline hover:bg-[#333] transition-colors"
+          >
+            Upload Work
+          </Link>
         </div>
-      ))}
+      ) : (
+        workSections.map((section) => (
+          <div key={section.title} className="mt-8">
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="font-[family-name:var(--font-syne)] text-[13px] font-bold tracking-[0.03em]">
+                {section.title}
+              </h2>
+              <Link
+                href={ROUTES.dashboardUploads}
+                className="ml-auto font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-1 rounded-full border-none bg-[#E8001A] text-white cursor-pointer hover:bg-[#c5001a] transition-colors no-underline"
+              >
+                + Upload
+              </Link>
+            </div>
+            <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-2">
+              {section.items.map((item) => {
+                const cat = CATEGORY_MAP[item.category];
+                return (
+                  <Link key={item.id} href={ROUTES.design(item.id)} className="no-underline">
+                    <div className="flex-shrink-0 w-[118px] rounded-[6px] border border-[#e8e8e8] overflow-hidden cursor-pointer hover:-translate-y-[3px] hover:shadow-[0_8px_22px_rgba(0,0,0,0.1)] transition-all group relative">
+                      <div
+                        className="h-[88px] flex items-center justify-center"
+                        style={{ backgroundColor: cat?.color ?? '#f0f0f0' }}
+                      >
+                        {item.thumbnail_url ? (
+                          <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-white/40 font-[family-name:var(--font-syne)] text-[22px] font-extrabold transition-transform group-hover:scale-110">
+                            {item.title.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="px-2.5 py-2 text-[10px] text-[#111] truncate bg-white whitespace-nowrap">
+                        {item.title}
+                      </div>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="font-[family-name:var(--font-syne)] text-[9px] font-bold text-white uppercase tracking-[0.08em]">
+                          Open ↗
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+              <Link href={ROUTES.dashboardUploads} className="no-underline">
+                <div className="flex-shrink-0 w-[118px] h-[120px] rounded-[6px] border-[1.5px] border-dashed border-[#ddd] flex flex-col items-center justify-center text-[#ccc] cursor-pointer hover:border-[#0a0a0a] hover:text-[#0a0a0a] transition-all bg-transparent">
+                  <span className="text-[20px]">+</span>
+                  <span className="text-[10px] font-bold">Add Work</span>
+                </div>
+              </Link>
+            </div>
+          </div>
+        ))
+      )}
 
-      {/* Add section button */}
-      <button className="mt-6 w-full py-[18px] rounded-[6px] border-[1.5px] border-dashed border-[#ddd] text-[#ccc] font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.06em] cursor-pointer hover:border-[#0a0a0a] hover:text-[#0a0a0a] transition-all bg-transparent">
-        + Add Section
-      </button>
+      <Link href={ROUTES.dashboardUploads} className="no-underline block">
+        <button className="mt-6 w-full py-[18px] rounded-[6px] border-[1.5px] border-dashed border-[#ddd] text-[#ccc] font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.06em] cursor-pointer hover:border-[#0a0a0a] hover:text-[#0a0a0a] transition-all bg-transparent">
+          + Upload New Work
+        </button>
+      </Link>
     </div>
   );
 }
