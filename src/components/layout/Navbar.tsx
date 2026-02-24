@@ -1,22 +1,46 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Search, Menu, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { ROUTES } from '@/constants/routes';
 import { MobileNav } from './MobileNav';
 
 export function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const openSearch = useCallback(() => {
+    setSearchOpen(true);
+    document.body.style.overflow = 'hidden';
+  }, []);
+
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false);
+    setSearchQuery('');
+    document.body.style.overflow = '';
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (searchOpen) closeSearch();
+        else openSearch();
+      }
+      if (e.key === 'Escape' && searchOpen) closeSearch();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [searchOpen, openSearch, closeSearch]);
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 h-14 bg-white z-[500] border-b border-[#f2f2f2]">
+      <nav className="fixed top-0 left-0 right-0 h-14 bg-white z-[500] border-b border-[#e8e8e8]">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center h-full px-7">
           {/* Left */}
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3">
             <Link
               href={ROUTES.jobs}
               className="font-[family-name:var(--font-syne)] text-[13px] font-bold tracking-[0.01em] text-[#0a0a0a] no-underline hover:opacity-45 transition-opacity hidden sm:block"
@@ -25,28 +49,11 @@ export function Navbar() {
             </Link>
 
             <button
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="w-8 h-8 rounded-full border border-[#e8e8e8] flex items-center justify-center bg-transparent cursor-pointer hover:border-[#ccc] hover:bg-[#fafafa] transition-all"
+              onClick={openSearch}
+              className="w-8 h-8 rounded-full border border-[#e8e8e8] flex items-center justify-center bg-transparent cursor-pointer hover:border-[#0a0a0a] hover:bg-[#f5f5f5] transition-all"
             >
               <Search size={13} />
             </button>
-
-            {/* Search overlay */}
-            {searchOpen && (
-              <div className="absolute top-14 left-0 right-0 bg-white border-b border-[#e8e8e8] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
-                <div className="max-w-xl mx-auto">
-                  <input
-                    type="text"
-                    placeholder="Search designs, studios, portfolios..."
-                    autoFocus
-                    className="w-full px-4 py-3 rounded-full border border-[#e8e8e8] font-[family-name:var(--font-dm-sans)] text-sm outline-none focus:border-[#0a0a0a] focus:shadow-[0_0_0_3px_rgba(10,10,10,0.05)] transition-all"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape') setSearchOpen(false);
-                    }}
-                  />
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Center - Logo */}
@@ -63,15 +70,26 @@ export function Navbar() {
               href={ROUTES.dashboard}
               className="hidden md:flex flex-col items-center no-underline group"
             >
+              {/* Chain */}
+              <div className="flex flex-col items-center gap-px pt-1">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="w-[7px] h-[4px] border-[1.5px] border-[#ccc] rounded-full"
+                    style={{ transform: i % 2 === 1 ? 'rotate(90deg)' : undefined }}
+                  />
+                ))}
+              </div>
               <div className="animate-sign-rock origin-top">
-                <div className="border-[1.5px] border-black rounded-[7px] px-3 py-1.5 text-center bg-white group-hover:bg-[#fafafa] transition-colors">
-                  <div className="font-[family-name:var(--font-syne)] text-[11px] font-extrabold tracking-[0.06em] uppercase text-[#0a0a0a]">
+                <div className="relative border-[1.5px] border-black rounded-[7px] px-[18px] py-2 pb-2.5 text-center bg-white group-hover:bg-[#fafafa] transition-colors min-w-[118px]">
+                  <div className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-5 h-[2px] bg-white" />
+                  <div className="font-[family-name:var(--font-syne)] text-[11px] font-extrabold tracking-[0.1em] uppercase text-[#0a0a0a] leading-none">
                     Open Studio
                   </div>
-                  <div className="font-[family-name:var(--font-dm-sans)] text-[8px] font-light text-[#999] uppercase tracking-[0.15em]">
+                  <div className="font-[family-name:var(--font-dm-sans)] text-[8px] font-light text-[#bbb] uppercase tracking-[0.13em] mt-1 leading-none">
                     Enter your space
                   </div>
-                  <div className="flex justify-center gap-1 mt-0.5">
+                  <div className="flex justify-center gap-1 mt-[7px]">
                     <span className="w-1 h-1 rounded-full bg-[#0a0a0a]" />
                     <span className="w-1 h-1 rounded-full bg-[#0a0a0a]" />
                     <span className="w-1 h-1 rounded-full bg-[#0a0a0a]" />
@@ -90,6 +108,36 @@ export function Navbar() {
           </div>
         </div>
       </nav>
+
+      {/* Full-screen Search Overlay */}
+      {searchOpen && (
+        <div className="fixed inset-0 z-[999] bg-white/96 backdrop-blur-[12px] flex flex-col items-center pt-[min(18vh,140px)]">
+          <div className="w-[min(560px,90vw)] relative">
+            <input
+              type="text"
+              placeholder="Search designs, studios, portfolios..."
+              autoFocus
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full font-[family-name:var(--font-syne)] text-[clamp(22px,4vw,36px)] font-bold tracking-[-0.02em] border-none border-b-2 border-b-[#0a0a0a] bg-transparent py-3 outline-none placeholder:text-[#ccc]"
+              style={{ borderBottom: '2px solid #0a0a0a' }}
+            />
+            <button
+              onClick={closeSearch}
+              className="absolute right-0 top-1/2 -translate-y-1/2 w-[34px] h-[34px] rounded-full border border-[#e8e8e8] bg-transparent flex items-center justify-center cursor-pointer text-[#999] hover:border-[#0a0a0a] hover:text-[#0a0a0a] transition-all"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          {searchQuery && (
+            <div className="w-[min(560px,90vw)] mt-4 max-h-[50vh] overflow-y-auto flex flex-col gap-1.5">
+              <div className="text-center text-[13px] text-[#999] py-8">
+                Search results will appear here
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <MobileNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
     </>

@@ -239,7 +239,7 @@ export interface Database {
           company_name: string;
           company_logo_url: string | null;
           location: string | null;
-          job_type: 'full-time' | 'part-time' | 'contract' | 'freelance';
+          job_type: 'full-time' | 'part-time' | 'contract' | 'freelance' | 'gig';
           experience_level: 'junior' | 'mid' | 'senior' | 'lead' | null;
           salary_min: number | null;
           salary_max: number | null;
@@ -261,7 +261,7 @@ export interface Database {
           company_name: string;
           company_logo_url?: string | null;
           location?: string | null;
-          job_type: 'full-time' | 'part-time' | 'contract' | 'freelance';
+          job_type: 'full-time' | 'part-time' | 'contract' | 'freelance' | 'gig';
           experience_level?: 'junior' | 'mid' | 'senior' | 'lead' | null;
           salary_min?: number | null;
           salary_max?: number | null;
@@ -283,7 +283,7 @@ export interface Database {
           company_name?: string;
           company_logo_url?: string | null;
           location?: string | null;
-          job_type?: 'full-time' | 'part-time' | 'contract' | 'freelance';
+          job_type?: 'full-time' | 'part-time' | 'contract' | 'freelance' | 'gig';
           experience_level?: 'junior' | 'mid' | 'senior' | 'lead' | null;
           salary_min?: number | null;
           salary_max?: number | null;

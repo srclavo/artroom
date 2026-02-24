@@ -1,14 +1,5 @@
 @import "tailwindcss";
 
-/* ===== Fonts ===== */
-@font-face {
-  font-family: "Syne";
-  font-style: normal;
-  font-weight: 400 800;
-  font-display: swap;
-  src: url("https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap");
-}
-
 /* ===== CSS Variables ===== */
 :root {
   --font-syne: "Syne", sans-serif;
@@ -16,6 +7,11 @@
   --font-dm-mono: "DM Mono", monospace;
   --nav-h: 56px;
   --bar-h: 50px;
+  --black: #0a0a0a;
+  --border: #e8e8e8;
+  --gray: #999;
+  --red: #E8001A;
+  --green: #1A7A3C;
 }
 
 /* ===== Base ===== */
@@ -30,6 +26,7 @@ body {
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 /* ===== Scrollbar ===== */
@@ -70,13 +67,8 @@ body {
 
 /* ===== Sign Rock Animation ===== */
 @keyframes sign-rock {
-  0%,
-  100% {
-    transform: rotate(-3deg);
-  }
-  50% {
-    transform: rotate(3deg);
-  }
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
 }
 .animate-sign-rock {
   animation: sign-rock 3.8s ease-in-out infinite;
@@ -84,12 +76,8 @@ body {
 
 /* ===== Marquee ===== */
 @keyframes marquee-roll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 .animate-marquee {
   animation: marquee-roll 20s linear infinite;
@@ -98,29 +86,70 @@ body {
   animation-play-state: paused;
 }
 
+/* ===== Strip Marquee (Art of the Week) ===== */
+@keyframes strip-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-strip {
+  animation: strip-scroll 40s linear infinite;
+}
+.animate-strip:hover {
+  animation-play-state: paused;
+}
+
 /* ===== AI Pulse ===== */
 @keyframes ai-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(26, 122, 58, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(26, 122, 58, 0);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(26, 122, 58, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(26, 122, 58, 0); }
 }
 .animate-ai-pulse {
   animation: ai-pulse 2s ease-in-out infinite;
 }
 
-/* ===== Float Animation ===== */
+/* ===== Float Animation (Jobs hero talent cards) ===== */
 @keyframes float-card {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float {
+  animation: float-card 6s ease-in-out infinite alternate;
+}
+.animate-float-slow {
+  animation: float-card 7s ease-in-out infinite alternate;
+}
+.animate-float-fast {
+  animation: float-card 5.5s ease-in-out infinite alternate;
+}
+.animate-float-slower {
+  animation: float-card 8s ease-in-out infinite alternate;
+}
+
+/* ===== Blink (Skill vault AI dot) ===== */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.animate-blink {
+  animation: blink 2s infinite;
+}
+
+/* ===== Review Pulse (Post job) ===== */
+@keyframes review-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.4; }
+}
+.animate-review-pulse {
+  animation: review-pulse 1.4s ease-in-out infinite;
+}
+
+/* ===== Tip Slide In ===== */
+@keyframes tip-slide-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-tip-in {
+  animation: tip-slide-in 0.3s ease-out;
 }
 
 /* ===== Page spacing ===== */
@@ -128,4 +157,17 @@ body {
   padding-top: var(--nav-h);
   padding-bottom: var(--bar-h);
   min-height: 100vh;
+}
+
+/* ===== Custom scrollbar for panels ===== */
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #eee transparent;
+}
+.thin-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: #eee;
+  border-radius: 10px;
 }

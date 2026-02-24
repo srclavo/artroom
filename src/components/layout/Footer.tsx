@@ -4,12 +4,14 @@ import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 
 const MARQUEE_ITEMS = [
-  { text: 'Gallery', bg: '#FFE500', tc: '#0a0a0a', href: '/' },
-  { text: 'Skill Vault', bg: '#1B4FE8', tc: '#fff', href: '#' },
-  { text: 'Create', bg: '#1A7A3C', tc: '#fff', href: '#' },
-  { text: 'Gallery', bg: '#FFB3C6', tc: '#0a0a0a', href: '/' },
-  { text: 'Skill Vault', bg: '#7B3FA0', tc: '#fff', href: '#' },
-  { text: 'Create', bg: '#FF5F1F', tc: '#fff', href: '#' },
+  { text: 'Gallery', bg: '#FFE500', tc: '#0a0a0a', href: '/gallery' },
+  { text: 'Skill Vault', bg: '#1B4FE8', tc: '#fff', href: '/skills' },
+  { text: 'Messages', bg: '#E8001A', tc: '#fff', href: '/dashboard' },
+  { text: 'Create', bg: '#1A7A3C', tc: '#fff', href: '/dashboard/uploads' },
+  { text: 'Gallery', bg: '#7B3FA0', tc: '#fff', href: '/gallery' },
+  { text: 'Skill Vault', bg: '#FF5F1F', tc: '#fff', href: '/skills' },
+  { text: 'Messages', bg: '#FFB3C6', tc: '#0a0a0a', href: '/dashboard' },
+  { text: 'Create', bg: '#FFE500', tc: '#0a0a0a', href: '/dashboard/uploads' },
 ];
 
 export function Footer() {
@@ -53,17 +55,17 @@ export function Footer() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-[50px] bg-white border-t border-[#e8e8e8] z-[200] flex items-center overflow-hidden">
-      <div ref={trackRef} className="flex items-center gap-0 will-change-transform">
+      <div ref={trackRef} className="flex items-center gap-0 will-change-transform whitespace-nowrap">
         {items.map((item, i) => (
-          <div key={i} className="inline-flex items-center gap-5 px-5">
+          <div key={i} className="inline-flex items-center gap-[22px] px-[22px]">
             <Link
               href={item.href}
-              className="font-[family-name:var(--font-syne)] text-[12px] font-extrabold uppercase tracking-[0.04em] px-5 py-2 rounded-full border-none no-underline flex-shrink-0 hover:opacity-80 hover:scale-[0.96] active:scale-[0.93] transition-all"
+              className="font-[family-name:var(--font-syne)] text-[12px] font-extrabold uppercase tracking-[0.04em] px-[22px] py-2 rounded-full border-none no-underline flex-shrink-0 hover:opacity-80 hover:scale-[0.96] active:scale-[0.93] transition-all"
               style={{ backgroundColor: item.bg, color: item.tc }}
             >
               {item.text}
             </Link>
-            <span className="text-[#ddd] text-[20px]">·</span>
+            <span className="text-[#ddd] text-[20px] select-none">·</span>
           </div>
         ))}
       </div>
