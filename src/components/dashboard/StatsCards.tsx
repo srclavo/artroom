@@ -13,7 +13,10 @@ interface StatsCardsProps {
 
 export function StatsCards({ stats }: StatsCardsProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 rounded-lg border border-[#e8e8e8] divide-y sm:divide-y-0 sm:divide-x divide-[#e8e8e8]">
+    <div className={cn(
+      'rounded-lg border border-[#e8e8e8] divide-y sm:divide-y-0 sm:divide-x divide-[#e8e8e8]',
+      stats.length === 4 ? 'grid grid-cols-2 sm:grid-cols-4' : 'grid grid-cols-1 sm:grid-cols-3'
+    )}>
       {stats.map((stat) => (
         <div key={stat.label} className="p-5 text-center">
           <div className="font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.15em] text-[#999] mb-1">

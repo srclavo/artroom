@@ -1,0 +1,120 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Pencil, Trash2, Eye, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { useAuth } from '@/hooks/useAuth';
+import { createClient } from '@/lib/supabase/client';
+import { ROUTES } from '@/constants/routes';
+import { cn } from '@/lib/utils';
+import type { Job } from '@/types/job';
+
+const STATUS_STYLES: Record<string, { bg: string; tc: string }> = {
+  active: { bg: '#f0fdf4', tc: '#16a34a' },
+  draft: { bg: '#fef9c3', tc: '#92400e' },
+  closed: { bg: '#fef2f2', tc: '#dc2626' },
+};
+
+export default function DashboardJobsPage() {
+  const { user } = useAuth();
+  const supabase = createClient();
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchMyJobs = async () => {
+      const { data } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('company_id', user.id)
+        .order('created_at', { ascending: false });
+      setJobs((data ?? []) as unknown as Job[]);
+      setLoading(false);
+    };
+    fetchMyJobs();
+  }, [user]);
+
+  const updateStatus = async (jobId: string, status: 'active' | 'closed' | 'draft') => {
+    await supabase.from('jobs').update({ status } as never).eq('id', jobId);
+    setJobs((prev) => prev.map((j) => j.id === jobId ? { ...j, status } : j));
+  };
+
+  const deleteJob = async (jobId: string) => {
+    await supabase.from('jobs').delete().eq('id', jobId);
+    setJobs((prev) => prev.filter((j) => j.id !== jobId));
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="font-[family-name:var(--font-syne)] text-[22px] font-bold">My Jobs</h1>
+        <Link href={ROUTES.jobPost}>
+          <Button size="sm">Post New Job</Button>
+        </Link>
+      </div>
+
+      {loading ? (
+        <div className="py-12 text-center text-[13px] text-[#999]">Loading...</div>
+      ) : jobs.length === 0 ? (
+        <div className="py-12 text-center">
+          <div className="text-[32px] mb-3">💼</div>
+          <div className="font-[family-name:var(--font-syne)] text-[14px] font-bold text-[#999] mb-2">No jobs posted yet</div>
+          <Link href={ROUTES.jobPost} className="text-[13px] text-[#0a0a0a] underline">Post your first job</Link>
+        </div>
+      ) : (
+        <div className="border border-[#e8e8e8] rounded-[12px] overflow-hidden">
+          {jobs.map((job) => {
+            const style = STATUS_STYLES[job.status] ?? STATUS_STYLES.draft;
+            return (
+              <div key={job.id} className="flex items-center gap-4 px-5 py-4 border-b border-[#f0f0f0] last:border-b-0 hover:bg-[#fafafa] transition-colors">
+                <div className="flex-1 min-w-0">
+                  <div className="font-[family-name:var(--font-syne)] text-[14px] font-bold text-[#0a0a0a] mb-0.5 truncate">
+                    {job.title}
+                  </div>
+                  <div className="text-[11px] text-[#999]">
+                    {job.company_name} &middot; {job.location ?? 'Remote'} &middot; {new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </div>
+                </div>
+                <Badge color={style.bg} textColor={style.tc}>{job.status}</Badge>
+                <div className="flex gap-1.5">
+                  <Link href={ROUTES.job(job.id)}>
+                    <button className="w-8 h-8 rounded-lg border border-[#e8e8e8] bg-white flex items-center justify-center cursor-pointer hover:border-[#0a0a0a] transition-colors">
+                      <Eye size={13} className="text-[#999]" />
+                    </button>
+                  </Link>
+                  {job.status === 'active' ? (
+                    <button
+                      onClick={() => updateStatus(job.id, 'closed')}
+                      className="w-8 h-8 rounded-lg border border-[#e8e8e8] bg-white flex items-center justify-center cursor-pointer hover:border-[#E8001A] transition-colors"
+                      title="Close job"
+                    >
+                      <Pencil size={13} className="text-[#999]" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => updateStatus(job.id, 'active')}
+                      className="w-8 h-8 rounded-lg border border-[#e8e8e8] bg-white flex items-center justify-center cursor-pointer hover:border-[#16a34a] transition-colors"
+                      title="Reactivate"
+                    >
+                      <RotateCcw size={13} className="text-[#999]" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => deleteJob(job.id)}
+                    className="w-8 h-8 rounded-lg border border-[#e8e8e8] bg-white flex items-center justify-center cursor-pointer hover:border-[#E8001A] hover:bg-[#fef2f2] transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 size={13} className="text-[#999]" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

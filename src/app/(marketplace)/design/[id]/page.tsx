@@ -12,6 +12,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLike } from '@/hooks/useLike';
 import { usePurchase } from '@/hooks/usePurchase';
 import { useCart } from '@/contexts/CartContext';
+import { ReviewSection } from '@/components/marketplace/ReviewSection';
+import { ReportButton } from '@/components/ui/ReportButton';
 import { createClient } from '@/lib/supabase/client';
 import { CATEGORY_MAP } from '@/constants/categories';
 import { formatCompactNumber } from '@/lib/utils';
@@ -308,6 +310,14 @@ export default function DesignDetailPage({
           </div>
         </div>
       )}
+
+      {/* Report */}
+      <div className="mt-6 flex justify-end">
+        <ReportButton reportedType="design" reportedId={id} />
+      </div>
+
+      {/* Reviews */}
+      <ReviewSection designId={id} hasPurchased={hasPurchased || isOwner} />
 
       {/* Similar designs */}
       {similarDesigns.length > 0 && (

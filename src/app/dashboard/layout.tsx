@@ -24,7 +24,8 @@ const NAV_SECTIONS = [
       { label: '🖼 My Listings', href: ROUTES.dashboardUploads },
       { label: '+ New Listing', href: ROUTES.dashboardUploads },
       { label: '♡ Wishlist', href: ROUTES.dashboard + '?view=wishlist' },
-      { label: '💼 Jobs & Gigs', href: '/jobs' },
+      { label: '💼 My Jobs', href: ROUTES.dashboardJobs },
+      { label: '🔍 Browse Jobs', href: '/jobs' },
     ],
   },
   {

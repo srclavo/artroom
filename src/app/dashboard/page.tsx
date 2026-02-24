@@ -2,11 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Eye, Heart, Download, DollarSign, TrendingUp } from 'lucide-react';
 import { StatsCards } from '@/components/dashboard/StatsCards';
+import { EarningsChart } from '@/components/dashboard/EarningsChart';
+import { Avatar } from '@/components/ui/Avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { CATEGORY_MAP } from '@/constants/categories';
 import { ROUTES } from '@/constants/routes';
+import { formatCompactNumber } from '@/lib/utils';
 import type { DesignWithCreator } from '@/types/design';
 
 interface WorkSection {
@@ -14,19 +18,36 @@ interface WorkSection {
   items: DesignWithCreator[];
 }
 
+interface Transaction {
+  id: string;
+  title: string;
+  type: string;
+  amount: number;
+  date: string;
+  status: 'paid' | 'pending';
+}
+
+interface RecentFollower {
+  id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const supabase = createClient();
   const [stats, setStats] = useState([
     { label: 'Total Views', value: '—', change: '', isPositive: true },
+    { label: 'Total Likes', value: '—', change: '', isPositive: true },
     { label: 'Followers', value: '—', change: '', isPositive: true },
     { label: 'Earnings', value: '—', change: '', isPositive: true },
   ]);
   const [workSections, setWorkSections] = useState<WorkSection[]>([]);
-  const [aiMessages, setAiMessages] = useState([
-    { from: 'ai', text: 'Welcome to your studio! I can help you manage your portfolio, analyze trends, and optimize your listings. What would you like to work on?' },
-  ]);
-  const [aiInput, setAiInput] = useState('');
+  const [topByViews, setTopByViews] = useState<DesignWithCreator[]>([]);
+  const [topByRevenue, setTopByRevenue] = useState<{ design: DesignWithCreator; revenue: number }[]>([]);
+  const [recentFollowers, setRecentFollowers] = useState<RecentFollower[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -50,18 +71,85 @@ export default function DashboardPage() {
         .select('*', { count: 'exact', head: true })
         .eq('following_id', user.id);
 
+      // Fetch purchases (sales) for earnings
+      const { data: purchases } = await supabase
+        .from('purchases')
+        .select('*')
+        .eq('creator_id', user.id)
+        .order('created_at', { ascending: false });
+
+      // Fetch recent followers
+      const { data: followers } = await supabase
+        .from('follows')
+        .select(`
+          follower_id,
+          profiles!follows_follower_id_fkey (
+            id, username, display_name, avatar_url
+          )
+        `)
+        .eq('following_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
       const rows = (designs ?? []) as unknown as DesignWithCreator[];
+      const purchaseRows = (purchases ?? []) as { id: string; design_id: string; amount: number; creator_payout: number; status: string; created_at: string }[];
 
+      // Calculate totals
+      const totalViews = rows.reduce((sum, d) => sum + (d.view_count ?? 0), 0);
+      const totalLikes = rows.reduce((sum, d) => sum + (d.like_count ?? 0), 0);
+      const totalDownloads = rows.reduce((sum, d) => sum + (d.download_count ?? 0), 0);
+      const totalEarnings = purchaseRows
+        .filter((p) => p.status === 'completed')
+        .reduce((sum, p) => sum + (p.creator_payout ?? p.amount ?? 0), 0);
+
+      setStats([
+        { label: 'Total Views', value: formatCompactNumber(totalViews), change: `${rows.length} designs`, isPositive: true },
+        { label: 'Total Likes', value: formatCompactNumber(totalLikes), change: `${formatCompactNumber(totalDownloads)} downloads`, isPositive: true },
+        { label: 'Followers', value: formatCompactNumber(followerCount ?? 0), change: '', isPositive: true },
+        { label: 'Earnings', value: `$${totalEarnings.toFixed(2)}`, change: `${purchaseRows.length} sales`, isPositive: true },
+      ]);
+
+      // Top designs by views
+      const sortedByViews = [...rows].sort((a, b) => (b.view_count ?? 0) - (a.view_count ?? 0)).slice(0, 5);
+      setTopByViews(sortedByViews);
+
+      // Top designs by revenue
+      const revenueMap: Record<string, number> = {};
+      for (const p of purchaseRows.filter((p) => p.status === 'completed')) {
+        revenueMap[p.design_id] = (revenueMap[p.design_id] || 0) + (p.creator_payout ?? p.amount ?? 0);
+      }
+      const designMap = new Map(rows.map((d) => [d.id, d]));
+      const sortedByRevenue = Object.entries(revenueMap)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([designId, revenue]) => ({ design: designMap.get(designId)!, revenue }))
+        .filter((item) => item.design);
+      setTopByRevenue(sortedByRevenue);
+
+      // Recent followers
+      if (followers) {
+        const mapped = (followers as unknown as { profiles: RecentFollower }[])
+          .map((f) => f.profiles)
+          .filter(Boolean);
+        setRecentFollowers(mapped);
+      }
+
+      // Build transactions for EarningsChart
+      const txns: Transaction[] = purchaseRows.map((p) => {
+        const design = designMap.get(p.design_id);
+        return {
+          id: p.id,
+          title: design?.title ?? 'Design Sale',
+          type: 'sale',
+          amount: p.creator_payout ?? p.amount ?? 0,
+          date: new Date(p.created_at).toISOString().split('T')[0],
+          status: p.status === 'completed' ? 'paid' as const : 'pending' as const,
+        };
+      });
+      setTransactions(txns);
+
+      // Group designs by category for work sections
       if (rows.length > 0) {
-        const totalViews = rows.reduce((sum, d) => sum + (d.view_count ?? 0), 0);
-
-        setStats([
-          { label: 'Total Views', value: totalViews.toLocaleString(), change: `${rows.length} published`, isPositive: true },
-          { label: 'Followers', value: `${followerCount ?? 0}`, change: '', isPositive: true },
-          { label: 'Works', value: `${rows.length}`, change: '', isPositive: true },
-        ]);
-
-        // Group designs by category
         const grouped: Record<string, DesignWithCreator[]> = {};
         for (const d of rows) {
           const cat = d.category || 'other';
@@ -81,16 +169,6 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, [user]);
 
-  const sendAI = () => {
-    if (!aiInput.trim()) return;
-    setAiMessages((prev) => [
-      ...prev,
-      { from: 'user', text: aiInput },
-      { from: 'ai', text: 'Great question! Let me look into that for you. Based on your portfolio analytics, I recommend focusing on your branding work — it gets 3× more engagement than other categories.' },
-    ]);
-    setAiInput('');
-  };
-
   return (
     <div>
       <h1 className="font-[family-name:var(--font-syne)] text-[22px] font-bold mb-6">
@@ -99,54 +177,109 @@ export default function DashboardPage() {
 
       <StatsCards stats={stats} />
 
-      {/* AI Panel */}
-      <div className="mt-6 border border-[#e8e8e8] rounded-lg overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3.5 bg-[#fafafa] border-b border-[#e8e8e8]">
-          <span className="w-[7px] h-[7px] rounded-full bg-[#1A7A3C] animate-ai-pulse" />
-          <span className="font-[family-name:var(--font-syne)] text-[13px] font-bold">
-            Claude — Studio AI
-          </span>
-          <span className="ml-auto text-[10px] text-[#999]">
-            Powered by Anthropic
-          </span>
+      {/* Earnings Chart */}
+      <div className="mt-6">
+        <EarningsChart transactions={transactions} />
+      </div>
+
+      {/* Analytics Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+        {/* Top Designs by Views */}
+        <div className="border border-[#e8e8e8] rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-[#e8e8e8] flex items-center gap-2">
+            <Eye size={13} className="text-[#999]" />
+            <span className="font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.1em]">
+              Top by Views
+            </span>
+          </div>
+          <div className="divide-y divide-[#f5f5f5]">
+            {topByViews.length === 0 ? (
+              <div className="px-5 py-6 text-center text-[12px] text-[#ccc]">No designs yet</div>
+            ) : (
+              topByViews.map((d, i) => (
+                <Link key={d.id} href={ROUTES.design(d.id)} className="flex items-center gap-3 px-5 py-2.5 no-underline hover:bg-[#fafafa] transition-colors">
+                  <span className="font-[family-name:var(--font-syne)] text-[11px] font-bold text-[#ccc] w-4">{i + 1}</span>
+                  <div
+                    className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: CATEGORY_MAP[d.category]?.color ?? '#f0f0f0' }}
+                  >
+                    {d.thumbnail_url ? (
+                      <img src={d.thumbnail_url} alt="" className="w-full h-full object-cover rounded" />
+                    ) : (
+                      <span className="font-[family-name:var(--font-syne)] text-[11px] font-bold opacity-30">{d.title.charAt(0)}</span>
+                    )}
+                  </div>
+                  <span className="text-[12px] text-[#333] truncate flex-1">{d.title}</span>
+                  <span className="font-[family-name:var(--font-syne)] text-[12px] font-bold text-[#0a0a0a]">
+                    {formatCompactNumber(d.view_count ?? 0)}
+                  </span>
+                </Link>
+              ))
+            )}
+          </div>
         </div>
 
-        <div className="p-4 max-h-[180px] overflow-y-auto thin-scrollbar">
-          {aiMessages.map((msg, i) => (
-            <div
-              key={i}
-              className={`flex ${msg.from === 'user' ? 'justify-end' : 'justify-start'} mb-2 last:mb-0`}
-            >
-              <div
-                className={`max-w-[80%] px-3.5 py-2.5 rounded-[9px] text-[12px] leading-[1.65] ${
-                  msg.from === 'user'
-                    ? 'bg-[#0a0a0a] text-white rounded-br-[4px]'
-                    : 'bg-[#f5f5f5] text-[#333] rounded-bl-[4px]'
-                }`}
-              >
-                {msg.text}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-2 px-4 pb-4">
-          <input
-            type="text"
-            placeholder="Ask Claude anything..."
-            value={aiInput}
-            onChange={(e) => setAiInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendAI()}
-            className="flex-1 px-3.5 py-2 rounded-full border border-[#e8e8e8] text-[12px] outline-none focus:border-[#0a0a0a] transition-all font-[family-name:var(--font-dm-sans)]"
-          />
-          <button
-            onClick={sendAI}
-            className="px-4 py-2 rounded-full bg-[#0a0a0a] text-white text-[10px] font-[family-name:var(--font-syne)] font-bold uppercase tracking-[0.06em] border-none cursor-pointer hover:bg-[#333] transition-colors"
-          >
-            Send →
-          </button>
+        {/* Top Designs by Revenue */}
+        <div className="border border-[#e8e8e8] rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-[#e8e8e8] flex items-center gap-2">
+            <DollarSign size={13} className="text-[#1A7A3C]" />
+            <span className="font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.1em]">
+              Top by Revenue
+            </span>
+          </div>
+          <div className="divide-y divide-[#f5f5f5]">
+            {topByRevenue.length === 0 ? (
+              <div className="px-5 py-6 text-center text-[12px] text-[#ccc]">No sales yet</div>
+            ) : (
+              topByRevenue.map((item, i) => (
+                <Link key={item.design.id} href={ROUTES.design(item.design.id)} className="flex items-center gap-3 px-5 py-2.5 no-underline hover:bg-[#fafafa] transition-colors">
+                  <span className="font-[family-name:var(--font-syne)] text-[11px] font-bold text-[#ccc] w-4">{i + 1}</span>
+                  <div
+                    className="w-8 h-8 rounded flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: CATEGORY_MAP[item.design.category]?.color ?? '#f0f0f0' }}
+                  >
+                    {item.design.thumbnail_url ? (
+                      <img src={item.design.thumbnail_url} alt="" className="w-full h-full object-cover rounded" />
+                    ) : (
+                      <span className="font-[family-name:var(--font-syne)] text-[11px] font-bold opacity-30">{item.design.title.charAt(0)}</span>
+                    )}
+                  </div>
+                  <span className="text-[12px] text-[#333] truncate flex-1">{item.design.title}</span>
+                  <span className="font-[family-name:var(--font-syne)] text-[12px] font-bold text-[#1A7A3C]">
+                    ${item.revenue.toFixed(2)}
+                  </span>
+                </Link>
+              ))
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Recent Followers */}
+      {recentFollowers.length > 0 && (
+        <div className="mt-6 border border-[#e8e8e8] rounded-lg overflow-hidden">
+          <div className="px-5 py-3 border-b border-[#e8e8e8] flex items-center gap-2">
+            <TrendingUp size={13} className="text-[#1B4FE8]" />
+            <span className="font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.1em]">
+              Recent Followers
+            </span>
+          </div>
+          <div className="flex gap-4 px-5 py-4 overflow-x-auto scrollbar-hide">
+            {recentFollowers.map((f) => (
+              <Link
+                key={f.id}
+                href={ROUTES.artist(f.username)}
+                className="flex flex-col items-center gap-1.5 no-underline flex-shrink-0"
+              >
+                <Avatar name={f.display_name || f.username} size="md" />
+                <span className="text-[10px] text-[#555] truncate max-w-[70px]">
+                  @{f.username}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Work sections */}
       {workSections.length === 0 ? (

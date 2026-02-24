@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search, Menu, X, ShoppingBag, Bell } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { MobileNav } from './MobileNav';
@@ -11,12 +12,22 @@ import { NotificationDropdown } from '@/components/notifications/NotificationDro
 import { useCart } from '@/contexts/CartContext';
 import { useNotifications } from '@/hooks/useNotifications';
 
+interface SearchResult {
+  designs: { id: string; title: string; category: string; thumbnail_url: string; creator: { username: string } }[];
+  profiles: { id: string; username: string; display_name: string | null; avatar_url: string | null }[];
+  jobs: { id: string; title: string; company_name: string }[];
+}
+
 export function Navbar() {
+  const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { itemCount } = useCart();
   const { unreadCount } = useNotifications();
@@ -29,8 +40,34 @@ export function Navbar() {
   const closeSearch = useCallback(() => {
     setSearchOpen(false);
     setSearchQuery('');
+    setSearchResults(null);
     document.body.style.overflow = '';
   }, []);
+
+  // Debounced search
+  useEffect(() => {
+    if (!searchQuery || searchQuery.length < 2) {
+      setSearchResults(null);
+      return;
+    }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&type=all&limit=5`);
+        if (res.ok) setSearchResults(await res.json());
+      } catch { /* ignore */ }
+      setSearchLoading(false);
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [searchQuery]);
+
+  const handleSearchSubmit = () => {
+    if (searchQuery.trim()) {
+      closeSearch();
+      router.push(`${ROUTES.search}?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -156,10 +193,11 @@ export function Navbar() {
           <div className="w-[min(560px,90vw)] relative">
             <input
               type="text"
-              placeholder="Search designs, studios, portfolios..."
+              placeholder="Search designs, studios, jobs..."
               autoFocus
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(); }}
               className="w-full font-[family-name:var(--font-syne)] text-[clamp(22px,4vw,36px)] font-bold tracking-[-0.02em] border-none border-b-2 border-b-[#0a0a0a] bg-transparent py-3 outline-none placeholder:text-[#ccc]"
               style={{ borderBottom: '2px solid #0a0a0a' }}
             />
@@ -170,11 +208,71 @@ export function Navbar() {
               <X size={14} />
             </button>
           </div>
-          {searchQuery && (
-            <div className="w-[min(560px,90vw)] mt-4 max-h-[50vh] overflow-y-auto flex flex-col gap-1.5">
-              <div className="text-center text-[13px] text-[#999] py-8">
-                Search results will appear here
-              </div>
+          {searchQuery && searchQuery.length >= 2 && (
+            <div className="w-[min(560px,90vw)] mt-4 max-h-[50vh] overflow-y-auto">
+              {searchLoading ? (
+                <div className="text-center text-[13px] text-[#999] py-6">Searching...</div>
+              ) : searchResults && (searchResults.designs.length > 0 || searchResults.profiles.length > 0 || searchResults.jobs.length > 0) ? (
+                <div className="flex flex-col gap-1">
+                  {searchResults.designs.length > 0 && (
+                    <>
+                      <div className="font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.14em] text-[#bbb] px-2 pt-2">Designs</div>
+                      {searchResults.designs.map((d) => (
+                        <Link key={d.id} href={ROUTES.design(d.id)} onClick={closeSearch} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#f5f5f5] transition-colors no-underline">
+                          <div className="w-9 h-9 rounded-[6px] bg-[#f0f0f0] flex-shrink-0 overflow-hidden">
+                            {d.thumbnail_url && <img src={d.thumbnail_url} alt="" className="w-full h-full object-cover" />}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[13px] text-[#111] truncate">{d.title}</div>
+                            <div className="text-[10px] text-[#999]">{d.creator?.username}.artroom</div>
+                          </div>
+                          <span className="text-[9px] font-[family-name:var(--font-syne)] font-bold text-[#bbb] uppercase">Design</span>
+                        </Link>
+                      ))}
+                    </>
+                  )}
+                  {searchResults.profiles.length > 0 && (
+                    <>
+                      <div className="font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.14em] text-[#bbb] px-2 pt-2">Creators</div>
+                      {searchResults.profiles.map((p) => (
+                        <Link key={p.id} href={ROUTES.studio(p.username)} onClick={closeSearch} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#f5f5f5] transition-colors no-underline">
+                          <div className="w-9 h-9 rounded-full bg-[#f0f0f0] flex-shrink-0 overflow-hidden flex items-center justify-center">
+                            {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : <span className="font-[family-name:var(--font-syne)] text-[14px] font-bold text-[#999]">{(p.display_name || p.username).charAt(0).toUpperCase()}</span>}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[13px] text-[#111]">{p.display_name || p.username}</div>
+                            <div className="text-[10px] text-[#999]">@{p.username}</div>
+                          </div>
+                          <span className="text-[9px] font-[family-name:var(--font-syne)] font-bold text-[#bbb] uppercase">Studio</span>
+                        </Link>
+                      ))}
+                    </>
+                  )}
+                  {searchResults.jobs.length > 0 && (
+                    <>
+                      <div className="font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.14em] text-[#bbb] px-2 pt-2">Jobs</div>
+                      {searchResults.jobs.map((j) => (
+                        <Link key={j.id} href={ROUTES.job(j.id)} onClick={closeSearch} className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#f5f5f5] transition-colors no-underline">
+                          <div className="w-9 h-9 rounded-[6px] bg-[#f5f5f5] flex-shrink-0 flex items-center justify-center text-[16px]">💼</div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[13px] text-[#111] truncate">{j.title}</div>
+                            <div className="text-[10px] text-[#999]">{j.company_name}</div>
+                          </div>
+                          <span className="text-[9px] font-[family-name:var(--font-syne)] font-bold text-[#bbb] uppercase">Job</span>
+                        </Link>
+                      ))}
+                    </>
+                  )}
+                  <button
+                    onClick={handleSearchSubmit}
+                    className="mt-2 w-full py-2.5 text-center font-[family-name:var(--font-syne)] text-[11px] font-bold text-[#0a0a0a] bg-[#f5f5f5] rounded-lg border-none cursor-pointer hover:bg-[#e8e8e8] transition-colors"
+                  >
+                    View all results &rarr;
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center text-[13px] text-[#999] py-6">No results found</div>
+              )}
             </div>
           )}
         </div>

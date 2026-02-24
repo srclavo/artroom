@@ -338,6 +338,136 @@ export interface Database {
           created_at?: string;
         };
       };
+      saved_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          job_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          job_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          job_id?: string;
+          created_at?: string;
+        };
+      };
+      collections: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          description: string | null;
+          is_public: boolean;
+          cover_image_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          description?: string | null;
+          is_public?: boolean;
+          cover_image_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          description?: string | null;
+          is_public?: boolean;
+          cover_image_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      collection_items: {
+        Row: {
+          id: string;
+          collection_id: string;
+          design_id: string;
+          added_at: string;
+        };
+        Insert: {
+          id?: string;
+          collection_id: string;
+          design_id: string;
+          added_at?: string;
+        };
+        Update: {
+          id?: string;
+          collection_id?: string;
+          design_id?: string;
+          added_at?: string;
+        };
+      };
+      reviews: {
+        Row: {
+          id: string;
+          user_id: string;
+          design_id: string;
+          rating: number;
+          comment: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          design_id: string;
+          rating: number;
+          comment?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          design_id?: string;
+          rating?: number;
+          comment?: string | null;
+          created_at?: string;
+        };
+      };
+      reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          reported_type: 'design' | 'user' | 'review' | 'job';
+          reported_id: string;
+          reason: 'spam' | 'inappropriate' | 'copyright' | 'other';
+          description: string | null;
+          status: 'pending' | 'reviewed' | 'resolved';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          reporter_id: string;
+          reported_type: 'design' | 'user' | 'review' | 'job';
+          reported_id: string;
+          reason: 'spam' | 'inappropriate' | 'copyright' | 'other';
+          description?: string | null;
+          status?: 'pending' | 'reviewed' | 'resolved';
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          reporter_id?: string;
+          reported_type?: 'design' | 'user' | 'review' | 'job';
+          reported_id?: string;
+          reason?: 'spam' | 'inappropriate' | 'copyright' | 'other';
+          description?: string | null;
+          status?: 'pending' | 'reviewed' | 'resolved';
+          created_at?: string;
+        };
+      };
       notifications: {
         Row: {
           id: string;

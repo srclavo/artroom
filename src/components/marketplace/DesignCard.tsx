@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Bookmark, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SaveToCollectionModal } from '@/components/ui/SaveToCollectionModal';
 import type { DesignWithCreator } from '@/types/design';
 import { CATEGORY_MAP } from '@/constants/categories';
 
@@ -11,10 +12,12 @@ interface DesignCardProps {
   height?: number;
   onOpen?: (design: DesignWithCreator) => void;
   onBuy?: (design: DesignWithCreator) => void;
+  showRating?: boolean;
 }
 
-export function DesignCard({ design, height = 220, onOpen, onBuy }: DesignCardProps) {
+export function DesignCard({ design, height = 220, onOpen, onBuy, showRating }: DesignCardProps) {
   const [liked, setLiked] = useState(false);
+  const [saveOpen, setSaveOpen] = useState(false);
   const category = CATEGORY_MAP[design.category];
 
   return (
@@ -42,7 +45,7 @@ export function DesignCard({ design, height = 220, onOpen, onBuy }: DesignCardPr
           </span>
         )}
 
-        {/* Save label */}
+        {/* Price label on hover */}
         <button
           className="absolute top-2 right-2 bg-[#0a0a0a] text-white font-[family-name:var(--font-syne)] text-[9px] font-bold tracking-[0.08em] uppercase px-3 py-1 rounded-full opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 cursor-pointer border-none hover:bg-[#333]"
           onClick={(e) => {
@@ -52,6 +55,28 @@ export function DesignCard({ design, height = 220, onOpen, onBuy }: DesignCardPr
         >
           ${design.price}
         </button>
+
+        {/* Bookmark button on hover */}
+        <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+          <div className="relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSaveOpen(!saveOpen);
+              }}
+              className="w-7 h-7 rounded-full bg-white/90 border border-white/20 flex items-center justify-center cursor-pointer hover:bg-white transition-colors"
+            >
+              <Bookmark size={12} className="text-[#333]" />
+            </button>
+            {saveOpen && (
+              <SaveToCollectionModal
+                designId={design.id}
+                isOpen={saveOpen}
+                onClose={() => setSaveOpen(false)}
+              />
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Info */}
@@ -63,18 +88,25 @@ export function DesignCard({ design, height = 220, onOpen, onBuy }: DesignCardPr
           <span className="text-[10px] text-[#bbb]">
             {design.creator.username}.artroom
           </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setLiked(!liked);
-            }}
-            className={cn(
-              'text-[12px] cursor-pointer bg-transparent border-none p-0 transition-colors',
-              liked ? 'text-[#E8001A]' : 'text-[#ddd]'
+          <div className="flex items-center gap-1.5">
+            {showRating && (design as unknown as { avg_rating?: number }).avg_rating && (
+              <span className="flex items-center gap-0.5 text-[10px] text-[#f59e0b]">
+                <Star size={9} fill="#f59e0b" /> {((design as unknown as { avg_rating: number }).avg_rating).toFixed(1)}
+              </span>
             )}
-          >
-            <Heart size={12} fill={liked ? '#E8001A' : 'none'} />
-          </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLiked(!liked);
+              }}
+              className={cn(
+                'text-[12px] cursor-pointer bg-transparent border-none p-0 transition-colors',
+                liked ? 'text-[#E8001A]' : 'text-[#ddd]'
+              )}
+            >
+              <Heart size={12} fill={liked ? '#E8001A' : 'none'} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
