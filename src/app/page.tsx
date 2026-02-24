@@ -43,13 +43,11 @@ function HomeContent() {
   const [portfolios, setPortfolios] = useState<PortfolioWithCreator[]>([]);
   const [studiosLoading, setStudiosLoading] = useState(false);
   const [portfoliosLoading, setPortfoliosLoading] = useState(false);
-  const [trending, setTrending] = useState<DesignWithCreator[]>([]);
   const [recommended, setRecommended] = useState<DesignWithCreator[]>([]);
   const { isOpen, paymentIntent, openPayment, closePayment } = usePayment();
 
-  // Fetch trending & recommended
+  // Fetch recommended
   useEffect(() => {
-    fetch('/api/designs/trending').then((r) => r.ok ? r.json() : []).then(setTrending).catch(() => {});
     fetch('/api/designs/recommended').then((r) => r.ok ? r.json() : []).then(setRecommended).catch(() => {});
   }, []);
 
@@ -146,37 +144,6 @@ function HomeContent() {
       <main className="page-content">
         {/* Art of the Week */}
         <ArtOfTheWeek />
-
-        {/* Trending Now */}
-        {trending.length > 0 && (
-          <div className="px-5 pt-6 pb-2">
-            <div className="font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.2em] text-[#E8001A] mb-3 flex items-center gap-2">
-              <span className="w-5 h-[2px] bg-[#E8001A]" />
-              Trending Now
-            </div>
-            <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-3">
-              {trending.map((d) => (
-                <Link key={d.id} href={ROUTES.design(d.id)} className="no-underline flex-shrink-0">
-                  <div className="w-[160px] rounded-[10px] overflow-hidden border border-[#e8e8e8] hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] transition-all">
-                    <div className="h-[120px] bg-[#f0f0f0] overflow-hidden">
-                      {d.thumbnail_url ? (
-                        <img src={d.thumbnail_url} alt={d.title} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center font-[family-name:var(--font-syne)] text-[24px] font-extrabold text-[#ccc]">
-                          {d.title.charAt(0)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="px-2.5 py-2">
-                      <div className="text-[11px] text-[#111] truncate">{d.title}</div>
-                      <div className="text-[10px] text-[#bbb]">{d.creator?.username}</div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Recommended for You */}
         {recommended.length > 0 && (

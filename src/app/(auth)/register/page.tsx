@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,8 +13,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [registered, setRegistered] = useState(false);
   const { signUp } = useAuth();
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +33,35 @@ export default function RegisterPage() {
       setError(authError.message);
       setLoading(false);
     } else {
-      router.push(ROUTES.home);
+      setRegistered(true);
+      setLoading(false);
     }
   };
+
+  if (registered) {
+    return (
+      <div className="bg-white rounded-[16px] border border-[#e8e8e8] p-8 text-center">
+        <div className="text-[48px] mb-4">📬</div>
+        <h1 className="font-[family-name:var(--font-syne)] text-[20px] font-bold mb-2">
+          Check your email
+        </h1>
+        <p className="text-[13px] text-[#888] mb-1">
+          We sent a verification link to
+        </p>
+        <p className="text-[14px] font-bold text-[#0a0a0a] mb-6">
+          {email}
+        </p>
+        <p className="text-[12px] text-[#bbb] mb-6">
+          Click the link in your email to verify your account, then come back and sign in.
+        </p>
+        <Link href={ROUTES.login}>
+          <Button className="w-full">
+            Go to Sign In &rarr;
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-[16px] border border-[#e8e8e8] p-8">
@@ -82,7 +107,7 @@ export default function RegisterPage() {
           className="w-full"
           disabled={loading}
         >
-          {loading ? 'Creating...' : 'Create Account →'}
+          {loading ? 'Creating...' : 'Create Account \u2192'}
         </Button>
       </form>
 

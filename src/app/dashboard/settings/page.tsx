@@ -15,7 +15,7 @@ interface StripeStatus {
 }
 
 export default function SettingsPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const supabase = createClient();
   const searchParams = useSearchParams();
   const [displayName, setDisplayName] = useState('');
@@ -88,6 +88,7 @@ export default function SettingsPage() {
       showToast('Failed to save changes');
     } else {
       showToast('Settings saved successfully');
+      await refreshProfile();
     }
   };
 
@@ -119,6 +120,7 @@ export default function SettingsPage() {
       showToast('Failed to update avatar');
     } else {
       showToast('Avatar updated');
+      await refreshProfile();
     }
   };
 
@@ -267,7 +269,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Toast */}
-      <div className={`fixed bottom-7 right-7 z-[600] bg-[#0a0a0a] text-white font-[family-name:var(--font-syne)] text-[12px] font-bold px-6 py-3 rounded-full transition-all duration-300 pointer-events-none ${toast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2.5'}`}>
+      <div className={`fixed bottom-20 right-7 z-[600] bg-[#0a0a0a] text-white font-[family-name:var(--font-syne)] text-[12px] font-bold px-6 py-3 rounded-full transition-all duration-300 pointer-events-none ${toast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2.5'}`}>
         {toast}
       </div>
     </div>

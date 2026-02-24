@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/types/user';
@@ -11,18 +11,23 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
+  const fetchProfile = useCallback(async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    setProfile(data);
+    return data;
+  }, [supabase]);
+
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
 
       if (user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        setProfile(data);
+        await fetchProfile(user.id);
       }
       setLoading(false);
     };
@@ -33,12 +38,7 @@ export function useAuth() {
       async (_event, session) => {
         setUser(session?.user ?? null);
         if (session?.user) {
-          const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          setProfile(data);
+          await fetchProfile(session.user.id);
         } else {
           setProfile(null);
         }
@@ -46,7 +46,13 @@ export function useAuth() {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  }, [user, fetchProfile]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -71,5 +77,5 @@ export function useAuth() {
     setProfile(null);
   };
 
-  return { user, profile, loading, signIn, signUp, signOut };
+  return { user, profile, loading, signIn, signUp, signOut, refreshProfile };
 }

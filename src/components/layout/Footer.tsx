@@ -2,17 +2,43 @@
 
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
+import { useSolanaWallet } from '@/contexts/SolanaWalletContext';
 
-const MARQUEE_ITEMS = [
-  { text: 'Gallery', bg: '#FFE500', tc: '#0a0a0a', href: '/gallery' },
-  { text: 'Skill Vault', bg: '#1B4FE8', tc: '#fff', href: '/skills' },
-  { text: 'Messages', bg: '#E8001A', tc: '#fff', href: '/dashboard' },
-  { text: 'Create', bg: '#1A7A3C', tc: '#fff', href: '/dashboard/uploads' },
-  { text: 'Gallery', bg: '#7B3FA0', tc: '#fff', href: '/gallery' },
-  { text: 'Skill Vault', bg: '#FF5F1F', tc: '#fff', href: '/skills' },
-  { text: 'Messages', bg: '#FFB3C6', tc: '#0a0a0a', href: '/dashboard' },
-  { text: 'Create', bg: '#FFE500', tc: '#0a0a0a', href: '/dashboard/uploads' },
+type MarqueeItem =
+  | { type: 'link'; text: string; bg: string; tc: string; href: string }
+  | { type: 'wallet' };
+
+const BASE_ITEMS: MarqueeItem[] = [
+  { type: 'link', text: 'Gallery', bg: '#FFE500', tc: '#0a0a0a', href: '/gallery' },
+  { type: 'link', text: 'Skill Vault', bg: '#1B4FE8', tc: '#fff', href: '/skills' },
+  { type: 'link', text: 'Messages', bg: '#E8001A', tc: '#fff', href: '/dashboard' },
+  { type: 'link', text: 'Create', bg: '#1A7A3C', tc: '#fff', href: '/dashboard/uploads' },
+  { type: 'wallet' },
+  { type: 'link', text: 'Gallery', bg: '#7B3FA0', tc: '#fff', href: '/gallery' },
+  { type: 'link', text: 'Skill Vault', bg: '#FF5F1F', tc: '#fff', href: '/skills' },
+  { type: 'link', text: 'Messages', bg: '#FFB3C6', tc: '#0a0a0a', href: '/dashboard' },
+  { type: 'link', text: 'Create', bg: '#FFE500', tc: '#0a0a0a', href: '/dashboard/uploads' },
 ];
+
+function WalletMarqueeButton() {
+  const wallet = useSolanaWallet();
+
+  if (!wallet.isPhantomInstalled) return null;
+
+  const isConn = wallet.isConnected;
+  return (
+    <button
+      onClick={() => (isConn ? wallet.disconnect() : wallet.connect())}
+      className="font-[family-name:var(--font-syne)] text-[12px] font-extrabold uppercase tracking-[0.04em] px-[22px] py-2 rounded-full border-none cursor-pointer flex-shrink-0 hover:opacity-80 hover:scale-[0.96] active:scale-[0.93] transition-all whitespace-nowrap"
+      style={{
+        backgroundColor: isConn ? '#14F195' : '#9945FF',
+        color: isConn ? '#0a0a0a' : '#fff',
+      }}
+    >
+      {isConn ? wallet.displayAddress : '\u25CE Connect Wallet'}
+    </button>
+  );
+}
 
 export function Footer() {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -51,20 +77,24 @@ export function Footer() {
     };
   }, []);
 
-  const items = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+  const items = [...BASE_ITEMS, ...BASE_ITEMS];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-[50px] bg-white border-t border-[#e8e8e8] z-[200] flex items-center overflow-hidden">
       <div ref={trackRef} className="flex items-center gap-0 will-change-transform whitespace-nowrap">
         {items.map((item, i) => (
           <div key={i} className="inline-flex items-center gap-[22px] px-[22px]">
-            <Link
-              href={item.href}
-              className="font-[family-name:var(--font-syne)] text-[12px] font-extrabold uppercase tracking-[0.04em] px-[22px] py-2 rounded-full border-none no-underline flex-shrink-0 hover:opacity-80 hover:scale-[0.96] active:scale-[0.93] transition-all"
-              style={{ backgroundColor: item.bg, color: item.tc }}
-            >
-              {item.text}
-            </Link>
+            {item.type === 'wallet' ? (
+              <WalletMarqueeButton />
+            ) : (
+              <Link
+                href={item.href}
+                className="font-[family-name:var(--font-syne)] text-[12px] font-extrabold uppercase tracking-[0.04em] px-[22px] py-2 rounded-full border-none no-underline flex-shrink-0 hover:opacity-80 hover:scale-[0.96] active:scale-[0.93] transition-all"
+                style={{ backgroundColor: item.bg, color: item.tc }}
+              >
+                {item.text}
+              </Link>
+            )}
             <span className="text-[#ddd] text-[20px] select-none">·</span>
           </div>
         ))}

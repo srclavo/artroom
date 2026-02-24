@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { Search, Menu, X, ShoppingBag, Bell } from 'lucide-react';
 import { ROUTES } from '@/constants/routes';
 import { MobileNav } from './MobileNav';
-import { WalletButton } from './WalletButton';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
 import { useCart } from '@/contexts/CartContext';
@@ -143,8 +142,6 @@ export function Navbar() {
                 </span>
               )}
             </button>
-
-            <WalletButton />
 
             {/* Open Studio Sign */}
             <Link
