@@ -12,9 +12,9 @@ export interface Toast {
 }
 
 const TOAST_COLORS: Record<ToastType, { bg: string; border: string; icon: string }> = {
-  success: { bg: 'bg-[#f0fdf4]', border: 'border-[#bbf7d0]', icon: 'text-[#1A7A3C]' },
-  error: { bg: 'bg-[#fef2f2]', border: 'border-[#fecaca]', icon: 'text-[#E8001A]' },
-  info: { bg: 'bg-[#eff6ff]', border: 'border-[#bfdbfe]', icon: 'text-[#1B4FE8]' },
+  success: { bg: 'bg-[#f0fdf4]', border: 'border-[#bbf7d0]', icon: 'text-[#2ec66d]' },
+  error: { bg: 'bg-[#fef2f2]', border: 'border-[#fecaca]', icon: 'text-[#ff4625]' },
+  info: { bg: 'bg-[#eff6ff]', border: 'border-[#bfdbfe]', icon: 'text-[#6e87f2]' },
   warning: { bg: 'bg-[#fffbeb]', border: 'border-[#fde68a]', icon: 'text-[#92400e]' },
 };
 

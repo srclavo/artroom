@@ -9,26 +9,34 @@ type MarqueeItem =
   | { type: 'wallet' };
 
 const BASE_ITEMS: MarqueeItem[] = [
-  { type: 'link', text: 'Gallery', bg: '#FFE500', tc: '#0a0a0a', href: '/gallery' },
-  { type: 'link', text: 'Skill Vault', bg: '#1B4FE8', tc: '#fff', href: '/skills' },
-  { type: 'link', text: 'Messages', bg: '#E8001A', tc: '#fff', href: '/dashboard' },
-  { type: 'link', text: 'Create', bg: '#1A7A3C', tc: '#fff', href: '/dashboard/uploads' },
+  { type: 'link', text: 'Gallery', bg: '#e0eb3a', tc: '#0a0a0a', href: '/gallery' },
+  { type: 'link', text: 'Skill Vault', bg: '#6e87f2', tc: '#fff', href: '/skills' },
+  { type: 'link', text: 'Messages', bg: '#ff4625', tc: '#fff', href: '/dashboard' },
+  { type: 'link', text: 'Create', bg: '#2ec66d', tc: '#fff', href: '/dashboard/uploads' },
   { type: 'wallet' },
-  { type: 'link', text: 'Gallery', bg: '#7B3FA0', tc: '#fff', href: '/gallery' },
-  { type: 'link', text: 'Skill Vault', bg: '#FF5F1F', tc: '#fff', href: '/skills' },
-  { type: 'link', text: 'Messages', bg: '#FFB3C6', tc: '#0a0a0a', href: '/dashboard' },
-  { type: 'link', text: 'Create', bg: '#FFE500', tc: '#0a0a0a', href: '/dashboard/uploads' },
+  { type: 'link', text: 'Gallery', bg: '#d5d1ff', tc: '#0a0a0a', href: '/gallery' },
+  { type: 'link', text: 'Skill Vault', bg: '#f07e41', tc: '#fff', href: '/skills' },
+  { type: 'link', text: 'Messages', bg: '#ffafd9', tc: '#0a0a0a', href: '/dashboard' },
+  { type: 'link', text: 'Create', bg: '#98c7f3', tc: '#0a0a0a', href: '/dashboard/uploads' },
 ];
 
 function WalletMarqueeButton() {
   const wallet = useSolanaWallet();
-
-  if (!wallet.isPhantomInstalled) return null;
-
   const isConn = wallet.isConnected;
+
+  const handleClick = () => {
+    if (!wallet.isPhantomInstalled) {
+      window.open('https://phantom.app/', '_blank');
+    } else if (isConn) {
+      wallet.disconnect();
+    } else {
+      wallet.connect();
+    }
+  };
+
   return (
     <button
-      onClick={() => (isConn ? wallet.disconnect() : wallet.connect())}
+      onClick={handleClick}
       className="font-[family-name:var(--font-syne)] text-[12px] font-extrabold uppercase tracking-[0.04em] px-[22px] py-2 rounded-full border-none cursor-pointer flex-shrink-0 hover:opacity-80 hover:scale-[0.96] active:scale-[0.93] transition-all whitespace-nowrap"
       style={{
         backgroundColor: isConn ? '#14F195' : '#9945FF',

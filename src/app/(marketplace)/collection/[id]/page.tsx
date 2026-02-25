@@ -134,7 +134,7 @@ export default function CollectionPage({
               {isOwner && (
                 <button
                   onClick={async () => { await deleteCollection(id); window.location.href = ROUTES.home; }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#e8e8e8] bg-white text-[11px] font-[family-name:var(--font-syne)] font-bold cursor-pointer hover:border-[#E8001A] hover:text-[#E8001A] transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#e8e8e8] bg-white text-[11px] font-[family-name:var(--font-syne)] font-bold cursor-pointer hover:border-[#ff4625] hover:text-[#ff4625] transition-colors"
                 >
                   <Trash2 size={11} /> Delete
                 </button>
@@ -162,7 +162,7 @@ export default function CollectionPage({
                   {isOwner && (
                     <button
                       onClick={(e) => { e.stopPropagation(); handleRemove(design.id); }}
-                      className="absolute top-2 left-2 w-7 h-7 rounded-full bg-white/90 border border-[#e8e8e8] flex items-center justify-center cursor-pointer opacity-0 group-hover/col:opacity-100 transition-opacity hover:bg-[#fef2f2] hover:border-[#E8001A]"
+                      className="absolute top-2 left-2 w-7 h-7 rounded-full bg-white/90 border border-[#e8e8e8] flex items-center justify-center cursor-pointer opacity-0 group-hover/col:opacity-100 transition-opacity hover:bg-[#fef2f2] hover:border-[#ff4625]"
                     >
                       <Trash2 size={11} className="text-[#999]" />
                     </button>

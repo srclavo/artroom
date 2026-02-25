@@ -222,7 +222,7 @@ export default function DashboardPage() {
         {/* Top Designs by Revenue */}
         <div className="border border-[#e8e8e8] rounded-lg overflow-hidden">
           <div className="px-5 py-3 border-b border-[#e8e8e8] flex items-center gap-2">
-            <DollarSign size={13} className="text-[#1A7A3C]" />
+            <DollarSign size={13} className="text-[#2ec66d]" />
             <span className="font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.1em]">
               Top by Revenue
             </span>
@@ -245,7 +245,7 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <span className="text-[12px] text-[#333] truncate flex-1">{item.design.title}</span>
-                  <span className="font-[family-name:var(--font-syne)] text-[12px] font-bold text-[#1A7A3C]">
+                  <span className="font-[family-name:var(--font-syne)] text-[12px] font-bold text-[#2ec66d]">
                     ${item.revenue.toFixed(2)}
                   </span>
                 </Link>
@@ -259,7 +259,7 @@ export default function DashboardPage() {
       {recentFollowers.length > 0 && (
         <div className="mt-6 border border-[#e8e8e8] rounded-lg overflow-hidden">
           <div className="px-5 py-3 border-b border-[#e8e8e8] flex items-center gap-2">
-            <TrendingUp size={13} className="text-[#1B4FE8]" />
+            <TrendingUp size={13} className="text-[#6e87f2]" />
             <span className="font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.1em]">
               Recent Followers
             </span>
@@ -303,7 +303,7 @@ export default function DashboardPage() {
               </h2>
               <Link
                 href={ROUTES.dashboardUploads}
-                className="ml-auto font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-1 rounded-full border-none bg-[#E8001A] text-white cursor-pointer hover:bg-[#c5001a] transition-colors no-underline"
+                className="ml-auto font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-1 rounded-full border-none bg-[#ff4625] text-white cursor-pointer hover:bg-[#e03b1e] transition-colors no-underline"
               >
                 + Upload
               </Link>

@@ -165,7 +165,7 @@ export function ReviewSection({ designId, hasPurchased }: ReviewSectionProps) {
                   {user?.id === review.user_id && (
                     <button
                       onClick={() => deleteReview(review.id)}
-                      className="ml-1 bg-transparent border-none cursor-pointer text-[#ccc] hover:text-[#E8001A] transition-colors p-0"
+                      className="ml-1 bg-transparent border-none cursor-pointer text-[#ccc] hover:text-[#ff4625] transition-colors p-0"
                     >
                       <Trash2 size={11} />
                     </button>

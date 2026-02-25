@@ -6,16 +6,16 @@ import { ROUTES } from '@/constants/routes';
 import type { DesignWithCreator } from '@/types/design';
 
 const FALLBACK_ITEMS = [
-  { label: 'Lumis', color: '#FFB3C6', tc: '#0a0a0a' },
-  { label: 'Stellar', color: '#1B4FE8', tc: '#fff' },
-  { label: 'Neue', color: '#FFE500', tc: '#0a0a0a' },
-  { label: 'Coastal', color: '#1A7A3C', tc: '#fff' },
-  { label: 'Geo', color: '#7B3FA0', tc: '#fff' },
-  { label: 'Motion', color: '#FF5F1F', tc: '#fff' },
-  { label: 'Forma', color: '#0D1B4B', tc: '#fff' },
-  { label: 'Signal', color: '#E8001A', tc: '#fff' },
-  { label: 'Heat', color: '#00A896', tc: '#fff' },
-  { label: 'Logic', color: '#E8D5B0', tc: '#0a0a0a' },
+  { label: 'Lumis', color: '#ffafd9', tc: '#0a0a0a' },
+  { label: 'Stellar', color: '#6e87f2', tc: '#fff' },
+  { label: 'Neue', color: '#e0eb3a', tc: '#0a0a0a' },
+  { label: 'Coastal', color: '#2ec66d', tc: '#fff' },
+  { label: 'Geo', color: '#d5d1ff', tc: '#0a0a0a' },
+  { label: 'Motion', color: '#f07e41', tc: '#fff' },
+  { label: 'Forma', color: '#98c7f3', tc: '#0a0a0a' },
+  { label: 'Signal', color: '#ff4625', tc: '#fff' },
+  { label: 'Heat', color: '#6e87f2', tc: '#fff' },
+  { label: 'Logic', color: '#e0eb3a', tc: '#0a0a0a' },
 ];
 
 export function ArtOfTheWeek() {

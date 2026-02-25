@@ -29,7 +29,7 @@ interface SolanaWalletState {
   connect: () => Promise<string | null>;
   disconnect: () => Promise<void>;
   refreshBalance: () => Promise<void>;
-  transferSOL: (amountUSD: number) => Promise<string>;
+  transferSOL: (amountUSD: number, recipientAddress?: string) => Promise<string>;
 }
 
 const SolanaWalletContext = createContext<SolanaWalletState | null>(null);
@@ -146,13 +146,15 @@ export function SolanaWalletProvider({ children }: { children: ReactNode }) {
   }, [address, getConnection]);
 
   const transferSOL = useCallback(
-    async (amountUSD: number): Promise<string> => {
+    async (amountUSD: number, recipientAddress?: string): Promise<string> => {
       if (!address) throw new Error('Wallet not connected');
       const provider = getProvider();
       const conn = getConnection();
       if (!provider) throw new Error('Phantom not available');
 
-      const recipient = new PublicKey(SOLANA_CONFIG.recipient);
+      // Use creator's wallet if provided, otherwise fall back to platform address
+      const recipientAddr = recipientAddress || SOLANA_CONFIG.recipient;
+      const recipient = new PublicKey(recipientAddr);
       const solAmount = amountUSD * SOLANA_CONFIG.solPerUsd;
       let lamports = Math.round(solAmount * LAMPORTS_PER_SOL);
       if (lamports < 1) lamports = 1;

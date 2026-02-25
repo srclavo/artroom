@@ -14,13 +14,13 @@ import { CATEGORY_MAP } from '@/constants/categories';
 import { formatCompactNumber } from '@/lib/utils';
 
 const TAG_COLORS: Record<string, { bg: string; tc: string }> = {
-  branding: { bg: '#FFB3C6', tc: '#0a0a0a' },
-  'ui-ux': { bg: '#1B4FE8', tc: '#fff' },
-  typography: { bg: '#FFE500', tc: '#0a0a0a' },
-  illustration: { bg: '#FF5F1F', tc: '#fff' },
-  motion: { bg: '#1A7A3C', tc: '#fff' },
-  '3d': { bg: '#7B3FA0', tc: '#fff' },
-  template: { bg: '#0D1B4B', tc: '#fff' },
+  branding: { bg: '#ffafd9', tc: '#0a0a0a' },
+  'ui-ux': { bg: '#6e87f2', tc: '#fff' },
+  typography: { bg: '#e0eb3a', tc: '#0a0a0a' },
+  illustration: { bg: '#f07e41', tc: '#fff' },
+  motion: { bg: '#2ec66d', tc: '#fff' },
+  '3d': { bg: '#d5d1ff', tc: '#0a0a0a' },
+  template: { bg: '#98c7f3', tc: '#0a0a0a' },
 };
 
 const TABS = ['Designs', 'Portfolios', 'About'] as const;
@@ -104,7 +104,7 @@ export default function StudioPage({
 
       {/* Banner strip */}
       <div className="flex h-1.5">
-        {[primaryColor, '#1B4FE8', '#FFE500', '#0a0a0a'].map((c, i) => (
+        {[primaryColor, '#6e87f2', '#e0eb3a', '#0a0a0a'].map((c, i) => (
           <div key={i} className="flex-1" style={{ background: c }} />
         ))}
       </div>

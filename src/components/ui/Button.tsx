@@ -21,7 +21,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             'bg-transparent text-[#0a0a0a] border-none hover:bg-[#f5f5f5]':
               variant === 'ghost',
             'rounded-full': variant === 'pill',
-            'bg-[#E8001A] text-white border-none hover:bg-[#c5001a]':
+            'bg-[#ff4625] text-white border-none hover:bg-[#e03b1e]':
               variant === 'danger',
           },
           {

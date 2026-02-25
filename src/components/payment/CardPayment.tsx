@@ -53,7 +53,7 @@ function CardForm({ amount, onSuccess }: { amount: number; onSuccess: () => void
       />
 
       {errorMsg && (
-        <div className="mt-3 text-[12px] text-[#E8001A] font-[family-name:var(--font-syne)] font-bold">
+        <div className="mt-3 text-[12px] text-[#ff4625] font-[family-name:var(--font-syne)] font-bold">
           {errorMsg}
         </div>
       )}

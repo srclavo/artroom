@@ -225,7 +225,7 @@ export default function PostJobPage() {
             </div>
 
             {error && (
-              <div className="text-[12px] text-[#E8001A] font-[family-name:var(--font-syne)] font-bold">{error}</div>
+              <div className="text-[12px] text-[#ff4625] font-[family-name:var(--font-syne)] font-bold">{error}</div>
             )}
 
             <div className="flex gap-3 pt-4">

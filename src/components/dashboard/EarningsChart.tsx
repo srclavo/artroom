@@ -105,9 +105,9 @@ export function EarningsChart({ transactions }: EarningsChartProps) {
                 <Line
                   type="monotone"
                   dataKey="amount"
-                  stroke="#1A7A3C"
+                  stroke="#2ec66d"
                   strokeWidth={2}
-                  dot={{ r: 3, fill: '#1A7A3C' }}
+                  dot={{ r: 3, fill: '#2ec66d' }}
                   activeDot={{ r: 5 }}
                 />
               </LineChart>
@@ -143,7 +143,7 @@ export function EarningsChart({ transactions }: EarningsChartProps) {
                 >
                   <td className="px-5 py-3 text-[13px] text-[#111]">{tx.title}</td>
                   <td className="px-5 py-3 text-[11px] text-[#888]">{tx.type}</td>
-                  <td className="px-5 py-3 font-[family-name:var(--font-syne)] text-[16px] font-bold text-[#1A7A3C]">
+                  <td className="px-5 py-3 font-[family-name:var(--font-syne)] text-[16px] font-bold text-[#2ec66d]">
                     ${tx.amount}
                   </td>
                   <td className="px-5 py-3 text-[11px] text-[#888]">{tx.date}</td>
@@ -151,7 +151,7 @@ export function EarningsChart({ transactions }: EarningsChartProps) {
                     <span
                       className={`inline-block px-2.5 py-1 rounded-full text-[9px] font-[family-name:var(--font-syne)] font-bold uppercase tracking-[0.06em] ${
                         tx.status === 'paid'
-                          ? 'bg-[rgba(26,122,58,0.1)] text-[#1A7A3C]'
+                          ? 'bg-[rgba(46,198,109,0.1)] text-[#2ec66d]'
                           : 'bg-[rgba(245,200,0,0.15)] text-[#92400e]'
                       }`}
                     >

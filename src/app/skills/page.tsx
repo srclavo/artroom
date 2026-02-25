@@ -38,7 +38,7 @@ const MOCK_SKILLS: Skill[] = [
     price: 49,
     category: 'branding',
     icon: '◆',
-    iconBg: '#FFB3C6',
+    iconBg: '#ffafd9',
     creator: 'Maya Chen',
     creatorHandle: '@maya',
     level: 2,
@@ -54,7 +54,7 @@ const MOCK_SKILLS: Skill[] = [
     price: 79,
     category: 'ui-ux',
     icon: '⬡',
-    iconBg: '#1B4FE8',
+    iconBg: '#6e87f2',
     creator: 'James Rivera',
     creatorHandle: '@james',
     level: 3,
@@ -70,7 +70,7 @@ const MOCK_SKILLS: Skill[] = [
     price: 29,
     category: 'typography',
     icon: 'Aa',
-    iconBg: '#FFE500',
+    iconBg: '#e0eb3a',
     creator: 'Kira Tanaka',
     creatorHandle: '@kira',
     level: 1,
@@ -86,7 +86,7 @@ const MOCK_SKILLS: Skill[] = [
     price: 59,
     category: 'illustration',
     icon: '✦',
-    iconBg: '#FF5F1F',
+    iconBg: '#f07e41',
     creator: 'Orion Vale',
     creatorHandle: '@orion',
     level: 2,
@@ -102,7 +102,7 @@ const MOCK_SKILLS: Skill[] = [
     price: 69,
     category: 'motion',
     icon: '▸',
-    iconBg: '#1A7A3C',
+    iconBg: '#2ec66d',
     creator: 'Alex Storm',
     creatorHandle: '@alex',
     level: 2,
@@ -134,7 +134,7 @@ const MOCK_SKILLS: Skill[] = [
     price: 59,
     category: 'ui-ux',
     icon: '⊞',
-    iconBg: '#1B4FE8',
+    iconBg: '#6e87f2',
     creator: 'James Rivera',
     creatorHandle: '@james',
     level: 2,
@@ -150,7 +150,7 @@ const MOCK_SKILLS: Skill[] = [
     price: 19,
     category: 'branding',
     icon: '◉',
-    iconBg: '#FFB3C6',
+    iconBg: '#ffafd9',
     creator: 'Maya Chen',
     creatorHandle: '@maya',
     level: 1,
@@ -166,7 +166,7 @@ const MOCK_SKILLS: Skill[] = [
     price: 89,
     category: 'motion',
     icon: '⟐',
-    iconBg: '#1A7A3C',
+    iconBg: '#2ec66d',
     creator: 'Alex Storm',
     creatorHandle: '@alex',
     level: 3,
@@ -189,27 +189,27 @@ const HERO_CHIPS = [
 
 const FILTER_CATEGORIES = [
   { id: 'all', label: 'All Skills', color: '#0a0a0a', textColor: '#fff' },
-  { id: 'branding', label: 'Branding', color: '#FFB3C6', textColor: '#0a0a0a' },
-  { id: 'ui-ux', label: 'UI/UX', color: '#1B4FE8', textColor: '#fff' },
-  { id: 'typography', label: 'Typography', color: '#FFE500', textColor: '#0a0a0a' },
-  { id: 'illustration', label: 'Illustration', color: '#FF5F1F', textColor: '#fff' },
-  { id: 'motion', label: 'Motion', color: '#1A7A3C', textColor: '#fff' },
+  { id: 'branding', label: 'Branding', color: '#ffafd9', textColor: '#0a0a0a' },
+  { id: 'ui-ux', label: 'UI/UX', color: '#6e87f2', textColor: '#fff' },
+  { id: 'typography', label: 'Typography', color: '#e0eb3a', textColor: '#0a0a0a' },
+  { id: 'illustration', label: 'Illustration', color: '#f07e41', textColor: '#fff' },
+  { id: 'motion', label: 'Motion', color: '#2ec66d', textColor: '#fff' },
   { id: 'critique', label: 'Critique', color: '#E8D5B0', textColor: '#0a0a0a' },
 ];
 
 /* ─── Hero Badges ──────────────────────────────────────── */
 
 const HERO_BADGES = [
-  { label: 'Plug-and-play for any AI workflow', dotColor: '#1B4FE8' },
-  { label: 'Created by verified designers', dotColor: '#1A7A3C' },
-  { label: 'Earn with every install', dotColor: '#FF5F1F' },
+  { label: 'Plug-and-play for any AI workflow', dotColor: '#6e87f2' },
+  { label: 'Created by verified designers', dotColor: '#2ec66d' },
+  { label: 'Earn with every install', dotColor: '#f07e41' },
 ];
 
 /* ─── Level Config ─────────────────────────────────────── */
 
 const LEVEL_CONFIG: Record<1 | 2 | 3, { label: string; bg: string; text: string }> = {
-  1: { label: 'Level 1', bg: '#1B4FE8', text: '#fff' },
-  2: { label: 'Level 2', bg: '#FFE500', text: '#6B5400' },
+  1: { label: 'Level 1', bg: '#6e87f2', text: '#fff' },
+  2: { label: 'Level 2', bg: '#e0eb3a', text: '#6B5400' },
   3: { label: 'Level 3', bg: '#0a0a0a', text: '#fff' },
 };
 
@@ -311,8 +311,8 @@ export default function SkillsPage() {
           {/* Left Column */}
           <div className="max-w-[520px]">
             {/* Eyebrow */}
-            <div className="font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.15em] text-[#1B4FE8] mb-3 flex items-center gap-2">
-              <span className="w-4 h-[1.5px] bg-[#1B4FE8]" />
+            <div className="font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.15em] text-[#6e87f2] mb-3 flex items-center gap-2">
+              <span className="w-4 h-[1.5px] bg-[#6e87f2]" />
               AI Creative Skills
             </div>
 
@@ -405,7 +405,7 @@ export default function SkillsPage() {
                 <span
                   className="font-[family-name:var(--font-dm-mono)] text-[10px] font-medium bg-clip-text text-transparent"
                   style={{
-                    backgroundImage: 'linear-gradient(90deg, #0a0a0a, #1B4FE8)',
+                    backgroundImage: 'linear-gradient(90deg, #0a0a0a, #6e87f2)',
                     WebkitBackgroundClip: 'text',
                   }}
                 >

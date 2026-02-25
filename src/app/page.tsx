@@ -148,8 +148,8 @@ function HomeContent() {
         {/* Recommended for You */}
         {recommended.length > 0 && (
           <div className="px-5 pb-2">
-            <div className="font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.2em] text-[#1B4FE8] mb-3 flex items-center gap-2">
-              <span className="w-5 h-[2px] bg-[#1B4FE8]" />
+            <div className="font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.2em] text-[#6e87f2] mb-3 flex items-center gap-2">
+              <span className="w-5 h-[2px] bg-[#6e87f2]" />
               Recommended for You
             </div>
             <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-3">

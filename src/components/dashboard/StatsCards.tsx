@@ -28,7 +28,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
           <div
             className={cn(
               'text-[10px] mt-1',
-              stat.isPositive ? 'text-[#1A7A3C]' : 'text-[#E8001A]'
+              stat.isPositive ? 'text-[#2ec66d]' : 'text-[#ff4625]'
             )}
           >
             {stat.isPositive ? '↑' : '↓'} {stat.change}

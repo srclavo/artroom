@@ -16,13 +16,13 @@ import { ROUTES } from '@/constants/routes';
 import { X } from 'lucide-react';
 
 const TAG_COLORS: Record<string, { bg: string; tc: string }> = {
-  branding: { bg: '#FFB3C6', tc: '#0a0a0a' },
-  'ui-ux': { bg: '#1B4FE8', tc: '#fff' },
-  typography: { bg: '#FFE500', tc: '#0a0a0a' },
-  illustration: { bg: '#FF5F1F', tc: '#fff' },
-  motion: { bg: '#1A7A3C', tc: '#fff' },
-  '3d': { bg: '#7B3FA0', tc: '#fff' },
-  template: { bg: '#0D1B4B', tc: '#fff' },
+  branding: { bg: '#ffafd9', tc: '#0a0a0a' },
+  'ui-ux': { bg: '#6e87f2', tc: '#fff' },
+  typography: { bg: '#e0eb3a', tc: '#0a0a0a' },
+  illustration: { bg: '#f07e41', tc: '#fff' },
+  motion: { bg: '#2ec66d', tc: '#fff' },
+  '3d': { bg: '#d5d1ff', tc: '#0a0a0a' },
+  template: { bg: '#98c7f3', tc: '#0a0a0a' },
 };
 
 const MSG_TEMPLATES = [
@@ -159,12 +159,18 @@ export default function ArtistPage({ params }: { params: Promise<{ handle: strin
     <>
       <Navbar />
       <main className="page-content">
-        {/* Banner strip */}
-        <div className="flex h-1.5">
-          {[primaryColor, '#1B4FE8', '#FFE500', '#0a0a0a'].map((c, i) => (
-            <div key={i} className="flex-1" style={{ background: c }} />
-          ))}
-        </div>
+        {/* Banner / Cover Image */}
+        {profile.cover_image_url ? (
+          <div className="h-[160px] md:h-[200px] w-full overflow-hidden">
+            <img src={profile.cover_image_url} alt="" className="w-full h-full object-cover" />
+          </div>
+        ) : (
+          <div className="flex h-1.5">
+            {[primaryColor, '#6e87f2', '#e0eb3a', '#0a0a0a'].map((c, i) => (
+              <div key={i} className="flex-1" style={{ background: c }} />
+            ))}
+          </div>
+        )}
 
         {/* Profile Hero */}
         <div className="flex items-start gap-7 flex-wrap px-7 py-12 pb-10 border-b border-[#e8e8e8]">
@@ -222,6 +228,38 @@ export default function ArtistPage({ params }: { params: Promise<{ handle: strin
                 Hire {(profile.display_name || handle).split(' ')[0]}
               </button>
             </div>
+
+            {/* Social Links */}
+            {(() => {
+              const links = profile.social_links as Record<string, string> | null;
+              if (!links || Object.values(links).every((v) => !v)) return null;
+              const SOCIAL_LABELS: Record<string, string> = {
+                twitter: '𝕏',
+                instagram: 'IG',
+                behance: 'Bē',
+                dribbble: 'Dr',
+                linkedin: 'in',
+              };
+              return (
+                <div className="flex gap-2 mt-3">
+                  {Object.entries(links).map(([key, value]) => {
+                    if (!value) return null;
+                    const href = value.startsWith('http') ? value : key === 'twitter' ? `https://x.com/${value.replace('@', '')}` : key === 'instagram' ? `https://instagram.com/${value.replace('@', '')}` : `https://${value}`;
+                    return (
+                      <a
+                        key={key}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-[5px] rounded-full border border-[#e8e8e8] text-[#999] no-underline hover:border-[#0a0a0a] hover:text-[#0a0a0a] transition-all"
+                      >
+                        {SOCIAL_LABELS[key] || key}
+                      </a>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
         </div>
 

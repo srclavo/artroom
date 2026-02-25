@@ -104,7 +104,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                 await signOut();
                 onClose();
               }}
-              className="font-[family-name:var(--font-syne)] text-[16px] font-bold tracking-[0.01em] text-[#E8001A] bg-transparent border-none text-left py-3 border-b border-[#f2f2f2] cursor-pointer hover:opacity-60 transition-opacity"
+              className="font-[family-name:var(--font-syne)] text-[16px] font-bold tracking-[0.01em] text-[#ff4625] bg-transparent border-none text-left py-3 border-b border-[#f2f2f2] cursor-pointer hover:opacity-60 transition-opacity"
             >
               Log Out
             </button>

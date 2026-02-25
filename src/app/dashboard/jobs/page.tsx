@@ -88,7 +88,7 @@ export default function DashboardJobsPage() {
                   {job.status === 'active' ? (
                     <button
                       onClick={() => updateStatus(job.id, 'closed')}
-                      className="w-8 h-8 rounded-lg border border-[#e8e8e8] bg-white flex items-center justify-center cursor-pointer hover:border-[#E8001A] transition-colors"
+                      className="w-8 h-8 rounded-lg border border-[#e8e8e8] bg-white flex items-center justify-center cursor-pointer hover:border-[#ff4625] transition-colors"
                       title="Close job"
                     >
                       <Pencil size={13} className="text-[#999]" />
@@ -104,7 +104,7 @@ export default function DashboardJobsPage() {
                   )}
                   <button
                     onClick={() => deleteJob(job.id)}
-                    className="w-8 h-8 rounded-lg border border-[#e8e8e8] bg-white flex items-center justify-center cursor-pointer hover:border-[#E8001A] hover:bg-[#fef2f2] transition-colors"
+                    className="w-8 h-8 rounded-lg border border-[#e8e8e8] bg-white flex items-center justify-center cursor-pointer hover:border-[#ff4625] hover:bg-[#fef2f2] transition-colors"
                     title="Delete"
                   >
                     <Trash2 size={13} className="text-[#999]" />

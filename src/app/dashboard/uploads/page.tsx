@@ -10,6 +10,7 @@ import { ROUTES } from '@/constants/routes';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
+import { PLATFORM_FEE_PERCENT } from '@/constants/platform';
 
 interface UploadedFile {
   name: string;
@@ -37,8 +38,10 @@ export default function UploadsPage() {
   const [licenseType, setLicenseType] = useState('personal');
   const [isDragging, setIsDragging] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [publishedDesignId, setPublishedDesignId] = useState<string | null>(null);
+  const [draftSaved, setDraftSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -58,6 +61,64 @@ export default function UploadsPage() {
   }, []);
 
   const removeFile = (index: number) => setFiles((prev) => prev.filter((_, i) => i !== index));
+
+  const handleSaveDraft = async () => {
+    if (!user || !title) {
+      setError('Please enter a title before saving.');
+      return;
+    }
+
+    setIsSavingDraft(true);
+    setError(null);
+
+    try {
+      // Upload thumbnail if files exist
+      let thumbnailUrl: string | null = null;
+      if (files.length > 0) {
+        const thumbnailFile = files[0].file;
+        const thumbnailExt = thumbnailFile.name.split('.').pop();
+        const thumbnailPath = `${user.id}/${Date.now()}-draft-thumb.${thumbnailExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('thumbnails')
+          .upload(thumbnailPath, thumbnailFile);
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('thumbnails')
+            .getPublicUrl(thumbnailPath);
+          thumbnailUrl = urlData.publicUrl;
+        }
+      }
+
+      const tagList = tags.split(',').map((t) => t.trim()).filter(Boolean);
+
+      const { error: insertError } = await supabase
+        .from('designs')
+        .insert({
+          creator_id: user.id,
+          title,
+          description: description || null,
+          price: pricingType === 'free' ? 0 : parseFloat(price) || 0,
+          category: selectedCategory,
+          tags: tagList,
+          thumbnail_url: thumbnailUrl,
+          license_type: licenseType as 'personal' | 'commercial' | 'extended',
+          status: 'draft',
+        } as never)
+        .select()
+        .single();
+
+      if (insertError) throw new Error(`Failed to save draft: ${insertError.message}`);
+
+      setDraftSaved(true);
+      setTimeout(() => setDraftSaved(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
 
   const handlePublish = async () => {
     if (!user || !files.length || !title || !selectedCategory) {
@@ -142,7 +203,8 @@ export default function UploadsPage() {
   };
 
   const priceNum = parseFloat(price) || 0;
-  const earnings = pricingType === 'paid' ? (priceNum * 0.85).toFixed(2) : '0';
+  const creatorShare = (100 - PLATFORM_FEE_PERCENT) / 100;
+  const earnings = pricingType === 'paid' ? (priceNum * creatorShare).toFixed(2) : '0';
   const displayPrice = pricingType === 'free' ? 'Free' : `$${price || '0'}`;
 
   return (
@@ -157,7 +219,7 @@ export default function UploadsPage() {
         </p>
 
         {error && (
-          <div className="mb-4 p-3 bg-[#FEF2F2] border border-[#E8001A]/20 rounded-lg text-[12px] text-[#E8001A]">
+          <div className="mb-4 p-3 bg-[#FEF2F2] border border-[#ff4625]/20 rounded-lg text-[12px] text-[#ff4625]">
             {error}
           </div>
         )}
@@ -177,7 +239,7 @@ export default function UploadsPage() {
                 step === s.n
                   ? 'border-[#0a0a0a] text-[#0a0a0a]'
                   : step > s.n
-                    ? 'border-transparent text-[#1A7A3C]'
+                    ? 'border-transparent text-[#2ec66d]'
                     : 'border-transparent text-[#ccc]'
               )}
             >
@@ -185,7 +247,7 @@ export default function UploadsPage() {
                 className={cn(
                   'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-[1.5px]',
                   step > s.n
-                    ? 'bg-[#1A7A3C] text-white border-[#1A7A3C]'
+                    ? 'bg-[#2ec66d] text-white border-[#2ec66d]'
                     : step === s.n
                       ? 'bg-[#0a0a0a] text-white border-[#0a0a0a]'
                       : 'bg-transparent text-[#ccc] border-[#e8e8e8]'
@@ -258,7 +320,7 @@ export default function UploadsPage() {
                     </div>
                     <button
                       onClick={() => removeFile(i)}
-                      className="text-[#bbb] hover:text-[#E8001A] cursor-pointer bg-transparent border-none transition-colors"
+                      className="text-[#bbb] hover:text-[#ff4625] cursor-pointer bg-transparent border-none transition-colors"
                     >
                       <X size={16} />
                     </button>
@@ -357,18 +419,20 @@ export default function UploadsPage() {
               </div>
               <div className="bg-[#fafafa] rounded-[8px] p-3.5 border border-[#e8e8e8]">
                 <div className="flex justify-between text-[12px] text-[#888] mb-1">
-                  <span>ArtRoom platform fee</span><span>15%</span>
+                  <span>ArtRoom platform fee</span><span>{PLATFORM_FEE_PERCENT}%</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[12px] text-[#888]">You receive</span>
-                  <span className="font-[family-name:var(--font-syne)] text-[16px] font-extrabold text-[#1A7A3C]">${earnings}</span>
+                  <span className="font-[family-name:var(--font-syne)] text-[16px] font-extrabold text-[#2ec66d]">${earnings}</span>
                 </div>
               </div>
             </div>
 
             <div className="flex gap-2 mt-5">
               <Button variant="outline" onClick={() => setStep(2)}>← Back</Button>
-              <Button variant="outline">Save Draft</Button>
+              <Button variant="outline" onClick={handleSaveDraft} disabled={isSavingDraft}>
+                {draftSaved ? '✓ Saved!' : isSavingDraft ? 'Saving...' : 'Save Draft'}
+              </Button>
               <Button onClick={handlePublish} disabled={isPublishing}>
                 {isPublishing ? 'Publishing...' : 'Publish →'}
               </Button>

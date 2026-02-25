@@ -1,6 +1,8 @@
+import { PLATFORM_FEE_PERCENT } from '@/constants/platform';
+
 export const STRIPE_CONFIG = {
   publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-  platformFeePercent: 12,
+  platformFeePercent: PLATFORM_FEE_PERCENT,
   currency: 'usd' as const,
   statementDescriptor: 'ArtRoom',
 } as const;

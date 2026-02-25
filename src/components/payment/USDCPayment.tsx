@@ -188,7 +188,7 @@ export function USDCPayment({ amount, designId, onSuccess }: USDCPaymentProps) {
               >
                 USDC
               </span>
-              <span className="ml-2 font-[family-name:var(--font-syne)] text-[8px] font-bold bg-[#edfff4] text-[#1A7A3C] px-2 py-0.5 rounded-full">
+              <span className="ml-2 font-[family-name:var(--font-syne)] text-[8px] font-bold bg-[#edfff4] text-[#2ec66d] px-2 py-0.5 rounded-full">
                 No gas fees for buyer
               </span>
             </div>
@@ -238,7 +238,7 @@ export function USDCPayment({ amount, designId, onSuccess }: USDCPaymentProps) {
 
       {circleStatus === 'error' && (
         <div className="py-6 text-center">
-          <div className="font-[family-name:var(--font-syne)] text-[12px] text-[#E8001A] font-bold mb-3">
+          <div className="font-[family-name:var(--font-syne)] text-[12px] text-[#ff4625] font-bold mb-3">
             {circleError}
           </div>
           <button

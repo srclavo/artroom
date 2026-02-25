@@ -91,7 +91,7 @@ export default function DashboardLayout({
             <Avatar
               name={displayName}
               size="lg"
-              color="#FFB3C6"
+              color="#ffafd9"
               className="mb-3"
             />
             <div className="font-[family-name:var(--font-syne)] text-[15px] font-bold">
@@ -127,7 +127,7 @@ export default function DashboardLayout({
                   >
                     {item.label}
                     {'badge' in item && item.badge && (
-                      <span className="ml-auto text-[8px] bg-[#E8001A] text-white px-1.5 py-0.5 rounded-full font-bold">
+                      <span className="ml-auto text-[8px] bg-[#ff4625] text-white px-1.5 py-0.5 rounded-full font-bold">
                         {item.badge}
                       </span>
                     )}
@@ -144,7 +144,7 @@ export default function DashboardLayout({
                 await signOut();
                 router.push(ROUTES.home);
               }}
-              className="w-full font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-1.5 rounded-full border-[1.5px] border-[#e0e0e0] bg-white text-[#999] cursor-pointer hover:border-[#E8001A] hover:text-[#E8001A] transition-all"
+              className="w-full font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-1.5 rounded-full border-[1.5px] border-[#e0e0e0] bg-white text-[#999] cursor-pointer hover:border-[#ff4625] hover:text-[#ff4625] transition-all"
             >
               Log Out
             </button>

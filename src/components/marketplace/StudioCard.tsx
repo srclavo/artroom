@@ -24,12 +24,12 @@ export function StudioCard({ studio }: StudioCardProps) {
     >
       {/* Banner */}
       <div className="h-[90px] grid grid-cols-2 gap-0.5 overflow-hidden rounded-t-[12px]">
-        <div className="bg-[#FFB3C6] flex items-center justify-center">
+        <div className="bg-[#ffafd9] flex items-center justify-center">
           <span className="text-white/40 font-[family-name:var(--font-syne)] text-[32px] font-extrabold transition-transform duration-300 group-hover:scale-[1.08]">
             {studio.username.charAt(0).toUpperCase()}
           </span>
         </div>
-        <div className="bg-[#1B4FE8] flex items-center justify-center">
+        <div className="bg-[#6e87f2] flex items-center justify-center">
           <span className="text-white/40 font-[family-name:var(--font-syne)] text-[32px] font-extrabold transition-transform duration-300 group-hover:scale-[1.08]">
             ✦
           </span>

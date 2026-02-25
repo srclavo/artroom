@@ -101,10 +101,10 @@ export function DesignCard({ design, height = 220, onOpen, onBuy, showRating }: 
               }}
               className={cn(
                 'text-[12px] cursor-pointer bg-transparent border-none p-0 transition-colors',
-                liked ? 'text-[#E8001A]' : 'text-[#ddd]'
+                liked ? 'text-[#ff4625]' : 'text-[#ddd]'
               )}
             >
-              <Heart size={12} fill={liked ? '#E8001A' : 'none'} />
+              <Heart size={12} fill={liked ? '#ff4625' : 'none'} />
             </button>
           </div>
         </div>

@@ -39,7 +39,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               'outline-none placeholder:text-[#ccc]',
               'transition-all duration-200',
               error
-                ? 'border-[#E8001A] focus:border-[#E8001A] focus:shadow-[0_0_0_3px_rgba(232,0,26,0.08)]'
+                ? 'border-[#ff4625] focus:border-[#ff4625] focus:shadow-[0_0_0_3px_rgba(255,70,37,0.08)]'
                 : 'border-[#e8e8e8] focus:border-[#0a0a0a] focus:shadow-[0_0_0_3px_rgba(10,10,10,0.06)]',
               (isSearch || leftIcon) && 'pl-9',
               rightIcon && 'pr-9',
@@ -54,7 +54,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p className="mt-1 text-[11px] text-[#E8001A]">{error}</p>
+          <p className="mt-1 text-[11px] text-[#ff4625]">{error}</p>
         )}
       </div>
     );

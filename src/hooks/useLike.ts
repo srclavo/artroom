@@ -48,6 +48,7 @@ export function useLike(designId: string, userId?: string | null) {
 
     try {
       if (wasLiked) {
+        // Unlike: delete the like record
         const { error } = await supabase
           .from('likes')
           .delete()
@@ -55,23 +56,29 @@ export function useLike(designId: string, userId?: string | null) {
           .eq('design_id', designId);
 
         if (error) throw error;
-
-        await supabase
-          .from('designs')
-          .update({ like_count: likeCount - 1 } as never)
-          .eq('id', designId);
       } else {
+        // Like: insert the like record
         const { error } = await supabase
           .from('likes')
           .insert({ user_id: userId, design_id: designId } as never);
 
         if (error) throw error;
-
-        await supabase
-          .from('designs')
-          .update({ like_count: likeCount + 1 } as never)
-          .eq('id', designId);
       }
+
+      // Atomic count: always count actual likes rows to avoid drift
+      const { count } = await supabase
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('design_id', designId);
+
+      const actualCount = count ?? 0;
+
+      await supabase
+        .from('designs')
+        .update({ like_count: actualCount } as never)
+        .eq('id', designId);
+
+      setLikeCount(actualCount);
     } catch {
       // Rollback on error
       setLiked(wasLiked);
@@ -79,7 +86,7 @@ export function useLike(designId: string, userId?: string | null) {
     } finally {
       setLoading(false);
     }
-  }, [userId, designId, liked, likeCount, loading, supabase]);
+  }, [userId, designId, liked, loading, supabase]);
 
   return { liked, likeCount, toggleLike, loading };
 }

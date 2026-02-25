@@ -122,7 +122,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     </div>
                     <button
                       onClick={() => removeItem(item.designId)}
-                      className="self-center w-7 h-7 flex items-center justify-center rounded-full bg-transparent border-none cursor-pointer text-[#ccc] hover:text-[#E8001A] hover:bg-[#fef2f2] transition-all"
+                      className="self-center w-7 h-7 flex items-center justify-center rounded-full bg-transparent border-none cursor-pointer text-[#ccc] hover:text-[#ff4625] hover:bg-[#fef2f2] transition-all"
                     >
                       <Trash2 size={13} />
                     </button>
@@ -152,7 +152,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             </button>
             <button
               onClick={clearCart}
-              className="w-full mt-2 py-2 bg-transparent text-[#999] rounded-[13px] border-none font-[family-name:var(--font-syne)] text-[10px] font-bold cursor-pointer hover:text-[#E8001A] transition-colors"
+              className="w-full mt-2 py-2 bg-transparent text-[#999] rounded-[13px] border-none font-[family-name:var(--font-syne)] text-[10px] font-bold cursor-pointer hover:text-[#ff4625] transition-colors"
             >
               Clear Cart
             </button>

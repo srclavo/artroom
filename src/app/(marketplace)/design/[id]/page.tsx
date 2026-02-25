@@ -219,8 +219,8 @@ export default function DesignDetailPage({
               onClick={(e) => { e.preventDefault(); toggleLike(); }}
               className="text-[11px] text-[#aaa] bg-transparent border-none cursor-pointer text-left p-0"
             >
-              <strong className={`font-[family-name:var(--font-syne)] text-[18px] font-bold block flex items-center gap-1.5 ${liked ? 'text-[#E8001A]' : 'text-[#0a0a0a]'}`}>
-                <Heart size={14} fill={liked ? '#E8001A' : 'none'} />
+              <strong className={`font-[family-name:var(--font-syne)] text-[18px] font-bold block flex items-center gap-1.5 ${liked ? 'text-[#ff4625]' : 'text-[#0a0a0a]'}`}>
+                <Heart size={14} fill={liked ? '#ff4625' : 'none'} />
                 {formatCompactNumber(likeCount)}
               </strong>
               likes

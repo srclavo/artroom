@@ -50,7 +50,7 @@ export function ReportButton({ reportedType, reportedId, className }: ReportButt
       <button
         onClick={() => setOpen(true)}
         className={cn(
-          'flex items-center gap-1 text-[10px] text-[#ccc] bg-transparent border-none cursor-pointer hover:text-[#E8001A] transition-colors',
+          'flex items-center gap-1 text-[10px] text-[#ccc] bg-transparent border-none cursor-pointer hover:text-[#ff4625] transition-colors',
           className
         )}
       >
@@ -71,7 +71,7 @@ export function ReportButton({ reportedType, reportedId, className }: ReportButt
             {submitted ? (
               <div className="p-8 text-center">
                 <div className="text-[24px] mb-2">✓</div>
-                <div className="font-[family-name:var(--font-syne)] text-[13px] font-bold text-[#1A7A3C]">Report submitted</div>
+                <div className="font-[family-name:var(--font-syne)] text-[13px] font-bold text-[#2ec66d]">Report submitted</div>
                 <p className="text-[11px] text-[#999] mt-1">Thank you. We&apos;ll review this shortly.</p>
               </div>
             ) : (
@@ -106,7 +106,7 @@ export function ReportButton({ reportedType, reportedId, className }: ReportButt
                   className={cn(
                     'mt-3 w-full py-2.5 rounded-full font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.06em] border-none cursor-pointer transition-all',
                     reason
-                      ? 'bg-[#E8001A] text-white hover:bg-[#c5001a]'
+                      ? 'bg-[#ff4625] text-white hover:bg-[#e03b1e]'
                       : 'bg-[#e8e8e8] text-[#bbb] cursor-not-allowed'
                   )}
                 >

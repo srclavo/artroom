@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { CATEGORIES } from '@/constants/categories';
 import { cn } from '@/lib/utils';
+import { PLATFORM_FEE_PERCENT } from '@/constants/platform';
 
 interface UploadedFile {
   name: string;
@@ -39,8 +40,9 @@ export function UploadForm() {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const platformFee = pricingType === 'paid' && price ? (parseFloat(price) * 0.15).toFixed(2) : '0';
-  const earnings = pricingType === 'paid' && price ? (parseFloat(price) * 0.85).toFixed(2) : '0';
+  const feeRate = PLATFORM_FEE_PERCENT / 100;
+  const platformFee = pricingType === 'paid' && price ? (parseFloat(price) * feeRate).toFixed(2) : '0';
+  const earnings = pricingType === 'paid' && price ? (parseFloat(price) * (1 - feeRate)).toFixed(2) : '0';
 
   return (
     <div>
@@ -59,7 +61,7 @@ export function UploadForm() {
               step === s.n
                 ? 'border-[#0a0a0a] text-[#0a0a0a]'
                 : step > s.n
-                  ? 'border-transparent text-[#1A7A3C]'
+                  ? 'border-transparent text-[#2ec66d]'
                   : 'border-transparent text-[#999]'
             )}
           >
@@ -120,7 +122,7 @@ export function UploadForm() {
                   </div>
                   <button
                     onClick={() => removeFile(i)}
-                    className="text-[#ccc] hover:text-[#E8001A] cursor-pointer bg-transparent border-none transition-colors"
+                    className="text-[#ccc] hover:text-[#ff4625] cursor-pointer bg-transparent border-none transition-colors"
                   >
                     <X size={16} />
                   </button>
@@ -239,12 +241,12 @@ export function UploadForm() {
               {price && (
                 <div className="bg-[#fafafa] rounded-[10px] p-4 mb-4">
                   <div className="flex justify-between text-[12px] text-[#888] mb-1">
-                    <span>Platform fee (15%)</span>
+                    <span>Platform fee ({PLATFORM_FEE_PERCENT}%)</span>
                     <span>${platformFee}</span>
                   </div>
                   <div className="flex justify-between font-[family-name:var(--font-syne)] text-[14px] font-bold">
                     <span>Your earnings</span>
-                    <span className="text-[#1A7A3C]">${earnings}</span>
+                    <span className="text-[#2ec66d]">${earnings}</span>
                   </div>
                 </div>
               )}

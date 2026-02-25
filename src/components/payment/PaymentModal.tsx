@@ -189,7 +189,7 @@ export function PaymentModal({ isOpen, onClose, paymentIntent, onPurchaseComplet
                 </div>
               ) : stripeError ? (
                 <div className="py-8 text-center">
-                  <div className="font-[family-name:var(--font-syne)] text-[12px] text-[#E8001A] font-bold mb-3">
+                  <div className="font-[family-name:var(--font-syne)] text-[12px] text-[#ff4625] font-bold mb-3">
                     {stripeError}
                   </div>
                   <button
@@ -216,7 +216,7 @@ export function PaymentModal({ isOpen, onClose, paymentIntent, onPurchaseComplet
                 </div>
               ) : stripeError ? (
                 <div className="py-8 text-center">
-                  <div className="font-[family-name:var(--font-syne)] text-[12px] text-[#E8001A] font-bold">
+                  <div className="font-[family-name:var(--font-syne)] text-[12px] text-[#ff4625] font-bold">
                     {stripeError}
                   </div>
                 </div>

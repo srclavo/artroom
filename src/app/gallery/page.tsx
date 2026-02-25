@@ -1,85 +1,15 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { PaymentModal } from '@/components/payment/PaymentModal';
 import { usePayment } from '@/hooks/usePayment';
 import { CATEGORIES, CATEGORY_MAP } from '@/constants/categories';
-
-/* ------------------------------------------------------------------ */
-/*  Types                                                              */
-/* ------------------------------------------------------------------ */
-
-interface DesignItem {
-  id: string;
-  title: string;
-  creator: string;
-  creatorUsername: string;
-  price: number;
-  category: string;
-  views: number;
-  likes: number;
-}
-
-interface FeaturedPack {
-  id: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  creator: string;
-  creatorUsername: string;
-  price: number;
-  category: string;
-  itemCount: number;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Mock data                                                          */
-/* ------------------------------------------------------------------ */
-
-const MOCK_DESIGNS: DesignItem[] = [
-  { id: 'd1', title: 'Lumis Brand Kit', creator: 'Maya Chen', creatorUsername: 'maya', price: 129, category: 'branding', views: 2400, likes: 847 },
-  { id: 'd2', title: 'Stellar UI System', creator: 'James Rivera', creatorUsername: 'james', price: 199, category: 'ui-ux', views: 1800, likes: 561 },
-  { id: 'd3', title: 'Neue Display', creator: 'Kira Tanaka', creatorUsername: 'kira', price: 49, category: 'typography', views: 3200, likes: 312 },
-  { id: 'd4', title: 'Motion Kit Pro', creator: 'Alex Storm', creatorUsername: 'alex', price: 89, category: 'motion', views: 1100, likes: 210 },
-  { id: 'd5', title: 'Coastal Illustrations', creator: 'Maya Chen', creatorUsername: 'maya', price: 59, category: 'illustration', views: 890, likes: 178 },
-  { id: 'd6', title: 'Geo 3D Shapes', creator: 'Orion Vale', creatorUsername: 'orion', price: 79, category: '3d', views: 1500, likes: 345 },
-  { id: 'd7', title: 'Dashboard Templates', creator: 'James Rivera', creatorUsername: 'james', price: 149, category: 'ui-ux', views: 2100, likes: 490 },
-  { id: 'd8', title: 'Serif Collection', creator: 'Kira Tanaka', creatorUsername: 'kira', price: 39, category: 'typography', views: 670, likes: 98 },
-  { id: 'd9', title: 'Neon Glow Pack', creator: 'Nova Kim', creatorUsername: 'nova', price: 69, category: 'illustration', views: 1350, likes: 267 },
-  { id: 'd10', title: 'Abstract Patterns', creator: 'Orion Vale', creatorUsername: 'orion', price: 45, category: '3d', views: 980, likes: 156 },
-  { id: 'd11', title: 'Kinetic Type Kit', creator: 'Alex Storm', creatorUsername: 'alex', price: 99, category: 'motion', views: 760, likes: 189 },
-  { id: 'd12', title: 'Monoline Logo Set', creator: 'Nova Kim', creatorUsername: 'nova', price: 79, category: 'branding', views: 1420, likes: 304 },
-];
-
-const FEATURED_PACKS: FeaturedPack[] = [
-  {
-    id: 'fp1',
-    title: 'The Brand Architect Bundle',
-    subtitle: 'Everything you need for a complete brand identity.',
-    description:
-      'Logos, color systems, typography specs, social templates, stationery mockups, and brand guidelines -- all in one pack.',
-    creator: 'Maya Chen',
-    creatorUsername: 'maya',
-    price: 299,
-    category: 'branding',
-    itemCount: 48,
-  },
-  {
-    id: 'fp2',
-    title: 'UI Starter System',
-    subtitle: 'Ship faster with a production-ready design system.',
-    description:
-      '200+ components, dark mode variants, responsive layouts, and Figma tokens ready for handoff.',
-    creator: 'James Rivera',
-    creatorUsername: 'james',
-    price: 249,
-    category: 'ui-ux',
-    itemCount: 200,
-  },
-];
+import { ROUTES } from '@/constants/routes';
+import { createClient } from '@/lib/supabase/client';
+import type { DesignWithCreator } from '@/types/design';
 
 /* ------------------------------------------------------------------ */
 /*  Filter pills (category tabs)                                       */
@@ -112,32 +42,54 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 export default function GalleryPage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [sortBy, setSortBy] = useState<SortKey>('popular');
+  const [designs, setDesigns] = useState<DesignWithCreator[]>([]);
+  const [loading, setLoading] = useState(true);
   const { isOpen, paymentIntent, openPayment, closePayment } = usePayment();
+  const supabase = createClient();
 
-  /* Filtered + sorted designs */
-  const designs = useMemo(() => {
-    let list =
-      activeCategory === 'all'
-        ? [...MOCK_DESIGNS]
-        : MOCK_DESIGNS.filter((d) => d.category === activeCategory);
+  const fetchDesigns = useCallback(async () => {
+    setLoading(true);
 
+    let query = supabase
+      .from('designs')
+      .select(`
+        *,
+        creator:profiles!designs_creator_id_fkey (
+          id, username, display_name, avatar_url, is_verified
+        )
+      `)
+      .eq('status', 'published');
+
+    if (activeCategory !== 'all') {
+      query = query.eq('category', activeCategory);
+    }
+
+    // Sort
     switch (sortBy) {
       case 'popular':
-        list.sort((a, b) => b.likes - a.likes);
+        query = query.order('like_count', { ascending: false });
         break;
       case 'newest':
-        list.sort((a, b) => b.id.localeCompare(a.id));
+        query = query.order('created_at', { ascending: false });
         break;
       case 'price-asc':
-        list.sort((a, b) => a.price - b.price);
+        query = query.order('price', { ascending: true });
         break;
       case 'price-desc':
-        list.sort((a, b) => b.price - a.price);
+        query = query.order('price', { ascending: false });
         break;
     }
 
-    return list;
-  }, [activeCategory, sortBy]);
+    query = query.limit(40);
+
+    const { data } = await query;
+    setDesigns((data as unknown as DesignWithCreator[]) ?? []);
+    setLoading(false);
+  }, [activeCategory, sortBy, supabase]);
+
+  useEffect(() => {
+    fetchDesigns();
+  }, [fetchDesigns]);
 
   return (
     <>
@@ -224,95 +176,6 @@ export default function GalleryPage() {
           </select>
         </div>
 
-        {/* ── Featured Packs ────────────────────────────────────── */}
-        <section className="px-7 pb-10">
-          <h2 className="font-[family-name:var(--font-syne)] text-[18px] font-extrabold tracking-[-0.01em] mb-5">
-            Featured Packs
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {FEATURED_PACKS.map((pack) => {
-              const catMeta = CATEGORY_MAP[pack.category];
-              return (
-                <div
-                  key={pack.id}
-                  className="group grid grid-cols-[1fr_1fr] border border-[#e8e8e8] rounded-[14px] overflow-hidden bg-white hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-shadow duration-300"
-                >
-                  {/* Left: Image area */}
-                  <div
-                    className="flex items-center justify-center min-h-[220px] relative"
-                    style={{ backgroundColor: catMeta?.color ?? '#f0f0f0' }}
-                  >
-                    <span
-                      className="font-[family-name:var(--font-syne)] text-[64px] font-extrabold opacity-20 select-none"
-                      style={{ color: catMeta?.textColor ?? '#0a0a0a' }}
-                    >
-                      {pack.title.charAt(0)}
-                    </span>
-                    <div
-                      className="absolute top-3 left-3 font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-2.5 py-1 rounded-full"
-                      style={{
-                        backgroundColor: 'rgba(255,255,255,0.85)',
-                        color: '#0a0a0a',
-                      }}
-                    >
-                      {pack.itemCount} items
-                    </div>
-                  </div>
-
-                  {/* Right: Info */}
-                  <div className="p-5 flex flex-col justify-between">
-                    <div>
-                      <div
-                        className="font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.05em] px-2 py-[3px] rounded-full inline-block mb-3"
-                        style={{
-                          backgroundColor: catMeta?.color ?? '#f0f0f0',
-                          color: catMeta?.textColor ?? '#0a0a0a',
-                        }}
-                      >
-                        {catMeta?.label ?? pack.category}
-                      </div>
-                      <h3 className="font-[family-name:var(--font-syne)] text-[16px] font-bold leading-[1.25] mb-1.5">
-                        {pack.title}
-                      </h3>
-                      <p className="font-[family-name:var(--font-dm-sans)] text-[12px] text-[#888] leading-[1.6] mb-1">
-                        {pack.subtitle}
-                      </p>
-                      <p className="font-[family-name:var(--font-dm-sans)] text-[11px] text-[#aaa] leading-[1.6] hidden lg:block">
-                        {pack.description}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-4">
-                      <div>
-                        <span className="font-[family-name:var(--font-syne)] text-[20px] font-extrabold text-[#0a0a0a]">
-                          ${pack.price}
-                        </span>
-                        <span className="font-[family-name:var(--font-dm-sans)] text-[11px] text-[#bbb] ml-1.5">
-                          by @{pack.creatorUsername}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() =>
-                          openPayment({
-                            itemName: pack.title,
-                            itemPrice: pack.price,
-                            creatorUsername: pack.creatorUsername,
-                            designId: pack.id,
-                          })
-                        }
-                        className="font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.05em] bg-[#0a0a0a] text-white px-4 py-2 rounded-full border-none cursor-pointer hover:bg-[#333] transition-colors"
-                      >
-                        Buy Pack
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
         {/* ── All Designs grid ──────────────────────────────────── */}
         <section className="px-7 pb-16">
           <h2 className="font-[family-name:var(--font-syne)] text-[18px] font-extrabold tracking-[-0.01em] mb-5">
@@ -321,78 +184,113 @@ export default function GalleryPage() {
               : GALLERY_CATEGORIES.find((c) => c.id === activeCategory)?.label ?? 'Designs'}
           </h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-            {designs.map((item) => {
-              const catMeta = CATEGORY_MAP[item.category];
-              return (
-                <div
-                  key={item.id}
-                  className="group relative border border-[#e8e8e8] rounded-[12px] overflow-hidden bg-white cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)]"
-                >
-                  {/* Thumbnail area */}
-                  <div
-                    className="relative w-full aspect-[4/3] flex items-center justify-center"
-                    style={{ backgroundColor: catMeta?.color ?? '#f0f0f0' }}
-                  >
-                    <span
-                      className="font-[family-name:var(--font-syne)] text-[48px] font-extrabold opacity-15 select-none"
-                      style={{ color: catMeta?.textColor ?? '#0a0a0a' }}
-                    >
-                      {item.title.charAt(0)}
-                    </span>
-
-                    {/* Category tag */}
-                    <div
-                      className="absolute top-2.5 left-2.5 font-[family-name:var(--font-syne)] text-[8px] font-bold uppercase tracking-[0.06em] px-2 py-[3px] rounded-full"
-                      style={{
-                        backgroundColor: 'rgba(255,255,255,0.85)',
-                        color: '#0a0a0a',
-                      }}
-                    >
-                      {catMeta?.label ?? item.category}
-                    </div>
-
-                    {/* Buy button (hover) */}
-                    <button
-                      onClick={() =>
-                        openPayment({
-                          itemName: item.title,
-                          itemPrice: item.price,
-                          creatorUsername: item.creatorUsername,
-                          designId: item.id,
-                        })
-                      }
-                      className="absolute bottom-3 right-3 font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.04em] bg-[#0a0a0a] text-white px-4 py-2 rounded-full border-none cursor-pointer opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-[#333]"
-                    >
-                      Buy ${item.price}
-                    </button>
-                  </div>
-
-                  {/* Card info */}
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="border border-[#e8e8e8] rounded-[12px] overflow-hidden bg-white">
+                  <div className="w-full aspect-[4/3] bg-[#f5f5f5] animate-pulse" />
                   <div className="p-3.5">
-                    <h3 className="font-[family-name:var(--font-syne)] text-[13px] font-bold leading-[1.3] mb-1 truncate">
-                      {item.title}
-                    </h3>
-                    <div className="flex items-center justify-between">
-                      <span className="font-[family-name:var(--font-dm-sans)] text-[11px] text-[#aaa]">
-                        {item.creator}
-                      </span>
-                      <span className="font-[family-name:var(--font-syne)] text-[13px] font-extrabold text-[#0a0a0a]">
-                        ${item.price}
-                      </span>
-                    </div>
+                    <div className="h-4 bg-[#f0f0f0] rounded mb-2 w-3/4 animate-pulse" />
+                    <div className="h-3 bg-[#f5f5f5] rounded w-1/2 animate-pulse" />
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+              {designs.map((item) => {
+                const catMeta = CATEGORY_MAP[item.category];
+                return (
+                  <Link
+                    key={item.id}
+                    href={ROUTES.design(item.id)}
+                    className="group relative border border-[#e8e8e8] rounded-[12px] overflow-hidden bg-white cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.1)] no-underline"
+                  >
+                    {/* Thumbnail area */}
+                    <div
+                      className="relative w-full aspect-[4/3] flex items-center justify-center overflow-hidden"
+                      style={{ backgroundColor: catMeta?.color ?? '#f0f0f0' }}
+                    >
+                      {item.thumbnail_url ? (
+                        <img
+                          src={item.thumbnail_url}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span
+                          className="font-[family-name:var(--font-syne)] text-[48px] font-extrabold opacity-15 select-none"
+                          style={{ color: catMeta?.textColor ?? '#0a0a0a' }}
+                        >
+                          {item.title.charAt(0)}
+                        </span>
+                      )}
+
+                      {/* Category tag */}
+                      <div
+                        className="absolute top-2.5 left-2.5 font-[family-name:var(--font-syne)] text-[8px] font-bold uppercase tracking-[0.06em] px-2 py-[3px] rounded-full"
+                        style={{
+                          backgroundColor: 'rgba(255,255,255,0.85)',
+                          color: '#0a0a0a',
+                        }}
+                      >
+                        {catMeta?.label ?? item.category}
+                      </div>
+
+                      {/* Buy button (hover) */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openPayment({
+                            itemName: item.title,
+                            itemPrice: item.price,
+                            creatorUsername: item.creator?.username ?? 'creator',
+                            designId: item.id,
+                          });
+                        }}
+                        className="absolute bottom-3 right-3 font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.04em] bg-[#0a0a0a] text-white px-4 py-2 rounded-full border-none cursor-pointer opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-[#333]"
+                      >
+                        Buy ${item.price}
+                      </button>
+                    </div>
+
+                    {/* Card info */}
+                    <div className="p-3.5">
+                      <h3 className="font-[family-name:var(--font-syne)] text-[13px] font-bold leading-[1.3] mb-1 truncate text-[#0a0a0a]">
+                        {item.title}
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        <span className="font-[family-name:var(--font-dm-sans)] text-[11px] text-[#aaa]">
+                          {item.creator?.display_name ?? item.creator?.username ?? 'Unknown'}
+                        </span>
+                        <span className="font-[family-name:var(--font-syne)] text-[13px] font-extrabold text-[#0a0a0a]">
+                          {item.price > 0 ? `$${item.price}` : 'Free'}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
 
           {/* Empty state */}
-          {designs.length === 0 && (
+          {!loading && designs.length === 0 && (
             <div className="text-center py-16">
-              <p className="font-[family-name:var(--font-dm-sans)] text-[14px] text-[#bbb]">
-                No designs found in this category.
+              <div className="font-[family-name:var(--font-syne)] text-[48px] mb-4 opacity-20">🎨</div>
+              <p className="font-[family-name:var(--font-syne)] text-[16px] font-bold text-[#bbb] mb-2">
+                No designs yet
               </p>
+              <p className="font-[family-name:var(--font-dm-sans)] text-[13px] text-[#ccc]">
+                Be the first to publish in this category!
+              </p>
+              <Link
+                href={ROUTES.dashboardUploads}
+                className="inline-block mt-4 font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.04em] bg-[#0a0a0a] text-white px-6 py-2.5 rounded-full no-underline hover:bg-[#333] transition-colors"
+              >
+                Upload a Design
+              </Link>
             </div>
           )}
         </section>

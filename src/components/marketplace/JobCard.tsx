@@ -12,10 +12,10 @@ interface JobCardProps {
 }
 
 const JOB_TYPE_COLORS: Record<string, { bg: string; tc: string }> = {
-  'full-time': { bg: '#1B4FE8', tc: '#fff' },
-  freelance: { bg: '#1A7A3C', tc: '#fff' },
-  contract: { bg: '#FF5F1F', tc: '#fff' },
-  'part-time': { bg: '#FFE500', tc: '#0a0a0a' },
+  'full-time': { bg: '#6e87f2', tc: '#fff' },
+  freelance: { bg: '#2ec66d', tc: '#fff' },
+  contract: { bg: '#f07e41', tc: '#fff' },
+  'part-time': { bg: '#e0eb3a', tc: '#0a0a0a' },
 };
 
 export function JobCard({ job, isActive, onClick }: JobCardProps) {

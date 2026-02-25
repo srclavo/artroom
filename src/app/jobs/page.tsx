@@ -17,10 +17,10 @@ import type { Job } from '@/types/job';
 
 const FILTER_TYPES = [
   { id: 'all', label: 'All', color: '#0a0a0a', tc: '#fff' },
-  { id: 'full-time', label: 'Full-time', color: '#1B4FE8', tc: '#fff' },
-  { id: 'freelance', label: 'Freelance', color: '#1A7A3C', tc: '#fff' },
-  { id: 'gig', label: 'Gig', color: '#FF5F1F', tc: '#fff' },
-  { id: 'contract', label: 'Contract', color: '#7B3FA0', tc: '#fff' },
+  { id: 'full-time', label: 'Full-time', color: '#6e87f2', tc: '#fff' },
+  { id: 'freelance', label: 'Freelance', color: '#2ec66d', tc: '#fff' },
+  { id: 'gig', label: 'Gig', color: '#f07e41', tc: '#fff' },
+  { id: 'contract', label: 'Contract', color: '#d5d1ff', tc: '#0a0a0a' },
 ];
 
 const EXP_LEVELS = [
@@ -32,10 +32,10 @@ const EXP_LEVELS = [
 ];
 
 const TALENT_CARDS = [
-  { name: 'Maya Chen', role: 'Brand Designer', av: 'M', bg: '#FFB3C6', tc: '#0a0a0a', match: '96%' },
-  { name: 'James Park', role: 'UI/UX Designer', av: 'J', bg: '#1B4FE8', tc: '#fff', match: '92%' },
-  { name: 'Kai Dubois', role: 'Illustrator', av: 'K', bg: '#FF5F1F', tc: '#fff', match: '88%' },
-  { name: 'Seb Laurent', role: 'Type Designer', av: 'S', bg: '#7B3FA0', tc: '#fff', match: '94%' },
+  { name: 'Maya Chen', role: 'Brand Designer', av: 'M', bg: '#ffafd9', tc: '#0a0a0a', match: '96%' },
+  { name: 'James Park', role: 'UI/UX Designer', av: 'J', bg: '#6e87f2', tc: '#fff', match: '92%' },
+  { name: 'Kai Dubois', role: 'Illustrator', av: 'K', bg: '#f07e41', tc: '#fff', match: '88%' },
+  { name: 'Seb Laurent', role: 'Type Designer', av: 'S', bg: '#d5d1ff', tc: '#0a0a0a', match: '94%' },
 ];
 
 export default function JobsPage() {
@@ -75,8 +75,8 @@ export default function JobsPage() {
         {/* Hero */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 px-7 pt-[52px] pb-11 border-b border-[#e8e8e8]">
           <div>
-            <div className="font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.2em] text-[#E8001A] mb-3.5 flex items-center gap-2">
-              <span className="w-6 h-[2px] bg-[#E8001A]" />
+            <div className="font-[family-name:var(--font-syne)] text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff4625] mb-3.5 flex items-center gap-2">
+              <span className="w-6 h-[2px] bg-[#ff4625]" />
               Jobs &amp; Gigs
             </div>
             <h1 className="font-[family-name:var(--font-syne)] text-[clamp(30px,4.5vw,52px)] font-extrabold tracking-[-0.03em] leading-[1.05] mb-3.5">
@@ -175,7 +175,7 @@ export default function JobsPage() {
               className={cn(
                 'font-[family-name:var(--font-syne)] text-[9px] font-bold tracking-[0.06em] px-3 py-1.5 rounded-full border cursor-pointer transition-all',
                 remoteOnly
-                  ? 'border-[#1A7A3C] bg-[#f0fdf4] text-[#1A7A3C]'
+                  ? 'border-[#2ec66d] bg-[#f0fdf4] text-[#2ec66d]'
                   : 'border-[#e8e8e8] bg-white text-[#999] hover:border-[#0a0a0a]'
               )}
             >

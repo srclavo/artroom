@@ -2,7 +2,8 @@
 
 /* ===== CSS Variables ===== */
 :root {
-  --font-syne: "Syne", sans-serif;
+  --font-syne: "Plus Jakarta Sans", sans-serif;
+  --font-league: "League Spartan", sans-serif;
   --font-dm-sans: "DM Sans", sans-serif;
   --font-dm-mono: "DM Mono", monospace;
   --nav-h: 56px;
@@ -10,8 +11,8 @@
   --black: #0a0a0a;
   --border: #e8e8e8;
   --gray: #999;
-  --red: #E8001A;
-  --green: #1A7A3C;
+  --red: #ff4625;
+  --green: #2ec66d;
 }
 
 /* ===== Base ===== */

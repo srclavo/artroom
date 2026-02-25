@@ -22,6 +22,13 @@ export default function SettingsPage() {
   const [bio, setBio] = useState('');
   const [website, setWebsite] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
+  const [socialLinks, setSocialLinks] = useState({
+    twitter: '',
+    instagram: '',
+    behance: '',
+    dribbble: '',
+    linkedin: '',
+  });
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
 
@@ -36,6 +43,16 @@ export default function SettingsPage() {
       setBio(profile.bio || '');
       setWebsite(profile.website_url || '');
       setWalletAddress(profile.wallet_address || '');
+      const links = profile.social_links as Record<string, string> | null;
+      if (links) {
+        setSocialLinks({
+          twitter: links.twitter || '',
+          instagram: links.instagram || '',
+          behance: links.behance || '',
+          dribbble: links.dribbble || '',
+          linkedin: links.linkedin || '',
+        });
+      }
     }
   }, [profile]);
 
@@ -72,6 +89,11 @@ export default function SettingsPage() {
     if (!user) return;
     setSaving(true);
 
+    // Filter out empty social links
+    const filteredLinks = Object.fromEntries(
+      Object.entries(socialLinks).filter(([, v]) => v.trim() !== '')
+    );
+
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -79,6 +101,7 @@ export default function SettingsPage() {
         bio: bio || null,
         website_url: website || null,
         wallet_address: walletAddress || null,
+        social_links: Object.keys(filteredLinks).length > 0 ? filteredLinks : null,
       } as never)
       .eq('id', user.id);
 
@@ -197,6 +220,97 @@ export default function SettingsPage() {
             placeholder="https://yourwebsite.com"
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
+          />
+
+          {/* Cover Image */}
+          <div className="mb-4">
+            <label className="block mb-1.5 font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.12em] text-[#bbb]">
+              Cover Image
+            </label>
+            <div className="relative rounded-[10px] border border-[#e8e8e8] overflow-hidden">
+              <div className="h-[120px] bg-[#f5f5f5] flex items-center justify-center">
+                {profile?.cover_image_url ? (
+                  <img src={profile.cover_image_url} alt="Cover" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[12px] text-[#ccc]">No cover image</span>
+                )}
+              </div>
+              <label className="absolute bottom-2 right-2 font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.06em] px-3 py-1.5 rounded-full bg-white/90 text-[#888] cursor-pointer hover:bg-white hover:text-[#0a0a0a] transition-all border border-[#e8e8e8]">
+                {profile?.cover_image_url ? 'Change' : 'Upload'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    if (!e.target.files?.[0] || !user) return;
+                    const file = e.target.files[0];
+                    const ext = file.name.split('.').pop();
+                    const path = `${user.id}/cover-${Date.now()}.${ext}`;
+
+                    const { error: uploadError } = await supabase.storage
+                      .from('avatars')
+                      .upload(path, file);
+
+                    if (uploadError) {
+                      showToast('Cover upload failed');
+                      return;
+                    }
+
+                    const { data: urlData } = supabase.storage
+                      .from('avatars')
+                      .getPublicUrl(path);
+
+                    const { error: updateError } = await supabase
+                      .from('profiles')
+                      .update({ cover_image_url: urlData.publicUrl } as never)
+                      .eq('id', user.id);
+
+                    if (updateError) {
+                      showToast('Failed to update cover');
+                    } else {
+                      showToast('Cover image updated');
+                      await refreshProfile();
+                    }
+                  }}
+                />
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="font-[family-name:var(--font-syne)] text-[14px] font-bold mb-4">
+            Social Links
+          </h2>
+          <Input
+            label="Twitter / X"
+            placeholder="@username"
+            value={socialLinks.twitter}
+            onChange={(e) => setSocialLinks({ ...socialLinks, twitter: e.target.value })}
+          />
+          <Input
+            label="Instagram"
+            placeholder="@username"
+            value={socialLinks.instagram}
+            onChange={(e) => setSocialLinks({ ...socialLinks, instagram: e.target.value })}
+          />
+          <Input
+            label="Behance"
+            placeholder="behance.net/username"
+            value={socialLinks.behance}
+            onChange={(e) => setSocialLinks({ ...socialLinks, behance: e.target.value })}
+          />
+          <Input
+            label="Dribbble"
+            placeholder="dribbble.com/username"
+            value={socialLinks.dribbble}
+            onChange={(e) => setSocialLinks({ ...socialLinks, dribbble: e.target.value })}
+          />
+          <Input
+            label="LinkedIn"
+            placeholder="linkedin.com/in/username"
+            value={socialLinks.linkedin}
+            onChange={(e) => setSocialLinks({ ...socialLinks, linkedin: e.target.value })}
           />
         </section>
 

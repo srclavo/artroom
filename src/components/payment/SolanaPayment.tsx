@@ -7,10 +7,11 @@ import { SOLANA_CONFIG } from '@/constants/solana';
 interface SolanaPaymentProps {
   amount: number;
   designId?: string;
+  creatorWalletAddress?: string;
   onSuccess: (signature: string) => void;
 }
 
-export function SolanaPayment({ amount, designId, onSuccess }: SolanaPaymentProps) {
+export function SolanaPayment({ amount, designId, creatorWalletAddress, onSuccess }: SolanaPaymentProps) {
   const wallet = useSolanaWallet();
   const [payState, setPayState] = useState<
     'idle' | 'preparing' | 'signing' | 'confirmed' | 'error'
@@ -90,7 +91,7 @@ export function SolanaPayment({ amount, designId, onSuccess }: SolanaPaymentProp
       setPayState('preparing');
       setErrorMsg('');
       setPayState('signing');
-      const signature = await wallet.transferSOL(amount);
+      const signature = await wallet.transferSOL(amount, creatorWalletAddress);
 
       // Record purchase in database
       if (designId) {
