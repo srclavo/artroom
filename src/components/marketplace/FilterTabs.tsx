@@ -6,7 +6,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { CATEGORIES } from '@/constants/categories';
 
 const MAIN_TABS = [
-  { id: 'all', label: 'All Designs', color: '#0a0a0a', textColor: '#fff' },
+  { id: 'all', label: 'All Designs', color: '#fff', textColor: '#0a0a0a', gradientBorder: 'linear-gradient(90deg, #ff4625, #f07e41, #e0eb3a, #2ec66d, #98c7f3, #6e87f2, #d5d1ff, #ffafd9)' },
   { id: 'studios', label: 'Studios', color: '#1A1A2E', textColor: '#fff' },
   { id: 'portfolios', label: 'Portfolios', color: '#E8D5B0', textColor: '#0a0a0a' },
 ];

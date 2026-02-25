@@ -25,20 +25,24 @@ export function useSearch() {
 
       setLoading(true);
       debounceRef.current = setTimeout(async () => {
-        const { data } = await supabase
-          .from('designs')
-          .select(`
-            *,
-            creator:profiles!designs_creator_id_fkey (
-              id, username, display_name, avatar_url, is_verified
-            )
-          `)
-          .eq('status', 'published')
-          .or(`title.ilike.%${q}%,description.ilike.%${q}%`)
-          .limit(20);
+        try {
+          const { data } = await supabase
+            .from('designs')
+            .select(`
+              *,
+              creator:profiles!designs_creator_id_fkey (
+                id, username, display_name, avatar_url, is_verified
+              )
+            `)
+            .eq('status', 'published')
+            .or(`title.ilike.%${q}%,description.ilike.%${q}%`)
+            .limit(20);
 
-        if (data) {
-          setResults(data as unknown as DesignWithCreator[]);
+          if (data) {
+            setResults(data as unknown as DesignWithCreator[]);
+          }
+        } catch (err) {
+          console.error('[useSearch] Unexpected error:', err);
         }
         setLoading(false);
       }, 300);

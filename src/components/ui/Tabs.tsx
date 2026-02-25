@@ -7,6 +7,7 @@ interface Tab {
   label: string;
   color?: string;
   textColor?: string;
+  gradientBorder?: string;
 }
 
 interface TabsProps {
@@ -37,8 +38,11 @@ export function Tabs({ tabs, activeTab, onTabChange, className }: TabsProps) {
               !isActive && 'opacity-30'
             )}
             style={{
-              backgroundColor: tab.color ?? '#0a0a0a',
+              background: tab.gradientBorder
+                ? `linear-gradient(#fff, #fff) padding-box, ${tab.gradientBorder} border-box`
+                : tab.color ?? '#0a0a0a',
               color: tab.textColor ?? '#fff',
+              border: tab.gradientBorder ? '2px solid transparent' : undefined,
             }}
           >
             {tab.label}

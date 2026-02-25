@@ -86,7 +86,17 @@ export default function SettingsPage() {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    // Verify auth — use getUser() which validates the token server-side
+    let userId = user?.id;
+    if (!userId) {
+      const { data: { user: freshUser } } = await supabase.auth.getUser();
+      userId = freshUser?.id;
+    }
+    if (!userId) {
+      showToast('Session expired. Please log in again.');
+      return;
+    }
+
     setSaving(true);
 
     // Filter out empty social links
@@ -103,12 +113,13 @@ export default function SettingsPage() {
         wallet_address: walletAddress || null,
         social_links: Object.keys(filteredLinks).length > 0 ? filteredLinks : null,
       } as never)
-      .eq('id', user.id);
+      .eq('id', userId);
 
     setSaving(false);
 
     if (error) {
-      showToast('Failed to save changes');
+      console.error('[Settings] Save failed:', error.message, error);
+      showToast(`Failed to save: ${error.message}`);
     } else {
       showToast('Settings saved successfully');
       await refreshProfile();
@@ -126,7 +137,8 @@ export default function SettingsPage() {
       .upload(path, file);
 
     if (uploadError) {
-      showToast('Avatar upload failed');
+      console.error('[Settings] Avatar upload failed:', uploadError.message, uploadError);
+      showToast(`Avatar upload failed: ${uploadError.message}`);
       return;
     }
 
@@ -164,8 +176,21 @@ export default function SettingsPage() {
     }
   };
 
+  const isWelcome = searchParams.get('welcome') === 'true';
+
   return (
     <div>
+      {isWelcome && (
+        <div className="mb-6 p-4 bg-gradient-to-r from-[#f7f7ff] to-[#f0fdf4] border border-[#e8e8e8] rounded-[12px]">
+          <h2 className="font-[family-name:var(--font-syne)] text-[16px] font-bold mb-1">
+            Welcome to ArtRoom! 🎨
+          </h2>
+          <p className="text-[13px] text-[#888]">
+            Set up your profile so other creators and buyers can find you. Add your name, avatar, and social links below.
+          </p>
+        </div>
+      )}
+
       <h1 className="font-[family-name:var(--font-syne)] text-[22px] font-bold mb-6">
         Settings
       </h1>

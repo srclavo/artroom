@@ -82,10 +82,13 @@ export default function GalleryPage() {
 
     query = query.limit(40);
 
-    const { data } = await query;
+    const { data, error } = await query;
+    if (error) {
+      console.error('[Gallery] Supabase error:', error.message, error);
+    }
     setDesigns((data as unknown as DesignWithCreator[]) ?? []);
     setLoading(false);
-  }, [activeCategory, sortBy, supabase]);
+  }, [activeCategory, sortBy]);
 
   useEffect(() => {
     fetchDesigns();

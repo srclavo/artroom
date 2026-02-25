@@ -14,6 +14,7 @@ import { DesignViewer } from '@/components/marketplace/DesignViewer';
 import { StudioCard } from '@/components/marketplace/StudioCard';
 import { PortfolioCard } from '@/components/marketplace/PortfolioCard';
 import { PaymentModal } from '@/components/payment/PaymentModal';
+import { HireModal } from '@/components/marketplace/HireModal';
 import { usePayment } from '@/hooks/usePayment';
 import { useDesigns } from '@/hooks/useDesigns';
 import { createClient } from '@/lib/supabase/client';
@@ -45,10 +46,22 @@ function HomeContent() {
   const [portfoliosLoading, setPortfoliosLoading] = useState(false);
   const [recommended, setRecommended] = useState<DesignWithCreator[]>([]);
   const { isOpen, paymentIntent, openPayment, closePayment } = usePayment();
+  const [hireTarget, setHireTarget] = useState<{
+    creatorId: string;
+    creatorUsername: string;
+    creatorDisplayName: string | null;
+    portfolioTitle: string;
+  } | null>(null);
 
   // Fetch recommended
   useEffect(() => {
-    fetch('/api/designs/recommended').then((r) => r.ok ? r.json() : []).then(setRecommended).catch(() => {});
+    fetch('/api/designs/recommended')
+      .then((r) => {
+        if (!r.ok) console.error('[Home] Recommended API error:', r.status, r.statusText);
+        return r.ok ? r.json() : [];
+      })
+      .then(setRecommended)
+      .catch((err) => console.error('[Home] Recommended fetch error:', err));
   }, []);
 
   const category = useMemo(() => {
@@ -70,11 +83,13 @@ function HomeContent() {
     if (activeTab !== 'studios') return;
     const fetchStudios = async () => {
       setStudiosLoading(true);
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
         .eq('role', 'creator')
         .limit(12);
+
+      if (profilesError) console.error('[Home] Studios fetch error:', profilesError.message, profilesError);
 
       if (profiles) {
         // Get follower counts and design counts for each profile
@@ -105,7 +120,7 @@ function HomeContent() {
     if (activeTab !== 'portfolios') return;
     const fetchPortfolios = async () => {
       setPortfoliosLoading(true);
-      const { data } = await supabase
+      const { data, error: portfoliosError } = await supabase
         .from('portfolios')
         .select(`
           *,
@@ -116,6 +131,8 @@ function HomeContent() {
         .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(20);
+
+      if (portfoliosError) console.error('[Home] Portfolios fetch error:', portfoliosError.message, portfoliosError);
 
       if (data) {
         setPortfolios(data as unknown as PortfolioWithCreator[]);
@@ -253,6 +270,14 @@ function HomeContent() {
                       portfolioId: p.id,
                     })
                   }
+                  onHire={(p) =>
+                    setHireTarget({
+                      creatorId: p.creator_id,
+                      creatorUsername: p.creator.username,
+                      creatorDisplayName: p.creator.display_name,
+                      portfolioTitle: p.title,
+                    })
+                  }
                 />
               ))}
             </div>
@@ -277,6 +302,12 @@ function HomeContent() {
         isOpen={isOpen}
         onClose={closePayment}
         paymentIntent={paymentIntent}
+      />
+
+      <HireModal
+        isOpen={!!hireTarget}
+        onClose={() => setHireTarget(null)}
+        target={hireTarget}
       />
     </>
   );

@@ -24,37 +24,42 @@ export function useJobs(filters?: JobFilters) {
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
-    let query = supabase
-      .from('jobs')
-      .select('*')
-      .eq('status', 'active');
+    try {
+      let query = supabase
+        .from('jobs')
+        .select('*')
+        .eq('status', 'active');
 
-    if (filters?.jobType && filters.jobType !== 'all') {
-      query = query.eq('job_type', filters.jobType);
-    }
-    if (filters?.experienceLevel && filters.experienceLevel !== 'all') {
-      query = query.eq('experience_level', filters.experienceLevel);
-    }
-    if (filters?.isRemote) {
-      query = query.eq('is_remote', true);
-    }
-    if (filters?.salaryMin) {
-      query = query.gte('salary_min', filters.salaryMin);
-    }
-    if (filters?.search) {
-      query = query.or(
-        `title.ilike.%${filters.search}%,company_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
-      );
-    }
+      if (filters?.jobType && filters.jobType !== 'all') {
+        query = query.eq('job_type', filters.jobType);
+      }
+      if (filters?.experienceLevel && filters.experienceLevel !== 'all') {
+        query = query.eq('experience_level', filters.experienceLevel);
+      }
+      if (filters?.isRemote) {
+        query = query.eq('is_remote', true);
+      }
+      if (filters?.salaryMin) {
+        query = query.gte('salary_min', filters.salaryMin);
+      }
+      if (filters?.search) {
+        query = query.or(
+          `title.ilike.%${filters.search}%,company_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
+        );
+      }
 
-    if (filters?.sort === 'salary') {
-      query = query.order('salary_max', { ascending: false, nullsFirst: false });
-    } else {
-      query = query.order('is_featured', { ascending: false }).order('created_at', { ascending: false });
-    }
+      if (filters?.sort === 'salary') {
+        query = query.order('salary_max', { ascending: false, nullsFirst: false });
+      } else {
+        query = query.order('is_featured', { ascending: false }).order('created_at', { ascending: false });
+      }
 
-    const { data } = await query.limit(50);
-    setJobs((data ?? []) as unknown as Job[]);
+      const { data } = await query.limit(50);
+      setJobs((data ?? []) as unknown as Job[]);
+    } catch (err) {
+      console.error('[useJobs] Unexpected error:', err);
+      setJobs([]);
+    }
     setLoading(false);
   }, [filters?.search, filters?.jobType, filters?.experienceLevel, filters?.isRemote, filters?.salaryMin, filters?.sort]);
 
@@ -62,12 +67,16 @@ export function useJobs(filters?: JobFilters) {
   useEffect(() => {
     if (!user) return;
     const fetchSaved = async () => {
-      const { data } = await supabase
-        .from('saved_jobs')
-        .select('job_id')
-        .eq('user_id', user.id);
-      if (data) {
-        setSavedJobIds(new Set((data as unknown as { job_id: string }[]).map((r) => r.job_id)));
+      try {
+        const { data } = await supabase
+          .from('saved_jobs')
+          .select('job_id')
+          .eq('user_id', user.id);
+        if (data) {
+          setSavedJobIds(new Set((data as unknown as { job_id: string }[]).map((r) => r.job_id)));
+        }
+      } catch (err) {
+        console.error('[useJobs] fetchSaved error:', err);
       }
     };
     fetchSaved();

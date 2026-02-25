@@ -12,22 +12,31 @@ export function useAuth() {
   const supabase = createClient();
 
   const fetchProfile = useCallback(async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    setProfile(data);
-    return data;
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      setProfile(data);
+      return data;
+    } catch (err) {
+      console.error('[useAuth] fetchProfile error:', err);
+      return null;
+    }
   }, [supabase]);
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
 
-      if (user) {
-        await fetchProfile(user.id);
+        if (user) {
+          await fetchProfile(user.id);
+        }
+      } catch (err) {
+        console.error('[useAuth] getUser error:', err);
       }
       setLoading(false);
     };

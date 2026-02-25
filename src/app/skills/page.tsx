@@ -219,15 +219,29 @@ export default function SkillsPage() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
   const [visibleCards, setVisibleCards] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { isOpen, paymentIntent, openPayment, closePayment } = usePayment();
 
   /* ── Filtered Skills ──────────────────────────────────── */
 
   const filteredSkills = useMemo(() => {
-    if (activeFilter === 'all') return MOCK_SKILLS;
-    return MOCK_SKILLS.filter((s) => s.category === activeFilter);
-  }, [activeFilter]);
+    let skills = MOCK_SKILLS;
+    if (activeFilter !== 'all') {
+      skills = skills.filter((s) => s.category === activeFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      skills = skills.filter(
+        (s) =>
+          s.name.toLowerCase().includes(q) ||
+          s.description.toLowerCase().includes(q) ||
+          s.creator.toLowerCase().includes(q) ||
+          s.capabilities.some((c) => c.toLowerCase().includes(q))
+      );
+    }
+    return skills;
+  }, [activeFilter, searchQuery]);
 
   /* ── Intersection Observer for staggered entry ────────── */
 
@@ -415,6 +429,83 @@ export default function SkillsPage() {
             </div>
           </div>
         </section>
+
+        {/* ═══════════════════════════════════════════════════
+            SEARCH BAR
+        ═══════════════════════════════════════════════════ */}
+        <div className="px-7 py-4">
+          <div className="relative max-w-[520px]">
+            <svg
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#ccc] pointer-events-none"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search skills by name, creator, or capability..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border-[1.5px] border-[#e8e8e8] rounded-full font-[family-name:var(--font-dm-sans)] text-[13px] text-[#111] outline-none placeholder:text-[#ccc] focus:border-[#0a0a0a] focus:shadow-[0_0_0_3px_rgba(10,10,10,0.06)] transition-all bg-white"
+            />
+          </div>
+        </div>
+
+        {/* ═══════════════════════════════════════════════════
+            AI RECOMMENDED — "IMPROVE ON"
+        ═══════════════════════════════════════════════════ */}
+        <div className="px-7 pb-5">
+          <div className="bg-gradient-to-br from-[#f7f7ff] to-[#f0fdf4] border border-[#e8e8e8] rounded-[14px] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="relative flex h-[7px] w-[7px]">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6e87f2] opacity-75" />
+                <span className="relative inline-flex rounded-full h-[7px] w-[7px] bg-[#6e87f2]" />
+              </span>
+              <span className="font-[family-name:var(--font-syne)] text-[11px] font-bold uppercase tracking-[0.08em] text-[#6e87f2]">
+                AI Recommended &mdash; Improve On
+              </span>
+            </div>
+            <p className="font-[family-name:var(--font-dm-sans)] text-[12px] text-[#888] mb-4 max-w-[480px]">
+              Based on your creative activity, job applications, and workflow patterns, your AI recommends these skills to level up.
+            </p>
+            <div className="grid grid-cols-1 min-[600px]:grid-cols-3 gap-2.5">
+              {[MOCK_SKILLS[1], MOCK_SKILLS[4], MOCK_SKILLS[5]].map((skill) => (
+                <button
+                  key={skill.id}
+                  onClick={() => openDetail(skill)}
+                  className="flex items-center gap-3 bg-white border border-[#e8e8e8] rounded-[10px] px-3.5 py-3 text-left cursor-pointer hover:border-[#6e87f2] hover:shadow-[0_2px_12px_rgba(110,135,242,0.1)] transition-all"
+                >
+                  <div
+                    className="w-[36px] h-[36px] rounded-[9px] flex items-center justify-center text-[14px] flex-shrink-0"
+                    style={{ backgroundColor: skill.iconBg }}
+                  >
+                    {skill.icon}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-[family-name:var(--font-syne)] text-[12px] font-bold text-[#0a0a0a] truncate">
+                      {skill.name}
+                    </div>
+                    <div className="font-[family-name:var(--font-dm-sans)] text-[10px] text-[#999] truncate">
+                      {skill.capabilities[0]} &middot; ${skill.price}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <p className="font-[family-name:var(--font-dm-sans)] text-[10px] text-[#bbb] mt-3 flex items-center gap-1.5">
+              <span className="inline-block w-3 h-3">✨</span>
+              Recommendations update as you build, apply to jobs, and install skills
+            </p>
+          </div>
+        </div>
 
         {/* ═══════════════════════════════════════════════════
             FILTER BAR

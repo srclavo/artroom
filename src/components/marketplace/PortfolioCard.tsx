@@ -19,9 +19,10 @@ interface PortfolioCardProps {
   portfolio: Portfolio;
   height?: number;
   onBuy?: (portfolio: Portfolio) => void;
+  onHire?: (portfolio: Portfolio) => void;
 }
 
-export function PortfolioCard({ portfolio, height = 220, onBuy }: PortfolioCardProps) {
+export function PortfolioCard({ portfolio, height = 220, onBuy, onHire }: PortfolioCardProps) {
   const [bookmarked, setBookmarked] = useState(false);
   const category = CATEGORY_MAP[portfolio.category ?? ''];
 
@@ -90,6 +91,11 @@ export function PortfolioCard({ portfolio, height = 220, onBuy }: PortfolioCardP
 
         {/* Hire button */}
         <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onHire?.(portfolio);
+          }}
           className={cn(
             'mt-2 inline-flex items-center gap-1.5',
             'font-[family-name:var(--font-syne)] text-[9px] font-bold uppercase tracking-[0.08em]',

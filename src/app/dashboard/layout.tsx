@@ -13,17 +13,17 @@ const NAV_SECTIONS = [
   {
     label: 'Studio',
     items: [
-      { label: '▦ Sections', href: ROUTES.dashboard },
-      { label: '↗ Analytics', href: ROUTES.dashboard + '?view=analytics', badge: 'New' },
+      { label: '🏠 Studio Home', href: ROUTES.dashboard },
+      { label: '↗ Analytics', href: ROUTES.dashboardAnalytics },
       { label: '$ Earnings', href: ROUTES.dashboardEarnings },
     ],
   },
   {
     label: 'Gallery',
     items: [
-      { label: '🖼 My Listings', href: ROUTES.dashboardUploads },
+      { label: '🖼 My Listings', href: ROUTES.dashboardListings },
       { label: '+ New Listing', href: ROUTES.dashboardUploads },
-      { label: '♡ Wishlist', href: ROUTES.dashboard + '?view=wishlist' },
+      { label: '♡ Wishlist', href: ROUTES.dashboardWishlist },
       { label: '💼 My Jobs', href: ROUTES.dashboardJobs },
       { label: '🔍 Browse Jobs', href: '/jobs' },
     ],
@@ -31,13 +31,13 @@ const NAV_SECTIONS = [
   {
     label: 'Messages',
     items: [
-      { label: '💬 Messages', href: ROUTES.dashboard + '?view=messages' },
+      { label: '💬 Messages', href: ROUTES.dashboardMessages },
     ],
   },
   {
     label: 'AI Skills',
     items: [
-      { label: '🎨 My Skills', href: '/skills' },
+      { label: '🎨 My Skills', href: ROUTES.dashboardSkills },
     ],
   },
   {
@@ -126,11 +126,6 @@ export default function DashboardLayout({
                     )}
                   >
                     {item.label}
-                    {'badge' in item && item.badge && (
-                      <span className="ml-auto text-[8px] bg-[#ff4625] text-white px-1.5 py-0.5 rounded-full font-bold">
-                        {item.badge}
-                      </span>
-                    )}
                   </Link>
                 ))}
               </div>

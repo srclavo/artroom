@@ -6,12 +6,14 @@ import { ArrowLeft } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { HireModal } from '@/components/marketplace/HireModal';
 import { ROUTES } from '@/constants/routes';
 import { CATEGORY_MAP } from '@/constants/categories';
 import { createClient } from '@/lib/supabase/client';
 
 interface PortfolioData {
   id: string;
+  creator_id: string;
   title: string;
   description: string | null;
   price: number;
@@ -36,6 +38,7 @@ export default function PortfolioDetailPage({
   const [portfolio, setPortfolio] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [hireOpen, setHireOpen] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -43,7 +46,7 @@ export default function PortfolioDetailPage({
       const { data, error } = await supabase
         .from('portfolios')
         .select(`
-          id, title, description, price, category, tags, view_count,
+          id, creator_id, title, description, price, category, tags, view_count,
           thumbnail_url, preview_urls,
           creator:profiles!portfolios_creator_id_fkey (
             username, display_name, avatar_url
@@ -176,6 +179,15 @@ export default function PortfolioDetailPage({
           <Button className="w-full mb-2" size="lg">
             Buy Template →
           </Button>
+          <Button
+            variant="outline"
+            className="w-full mb-2"
+            size="lg"
+            onClick={() => setHireOpen(true)}
+          >
+            <span className="inline-block w-[6px] h-[6px] rounded-full bg-[#A8E63D] mr-2" />
+            Hire Creator
+          </Button>
           <Button variant="outline" className="w-full" size="lg">
             Bookmark
           </Button>
@@ -184,6 +196,17 @@ export default function PortfolioDetailPage({
           </div>
         </div>
       </div>
+
+      <HireModal
+        isOpen={hireOpen}
+        onClose={() => setHireOpen(false)}
+        target={portfolio ? {
+          creatorId: portfolio.creator_id,
+          creatorUsername: portfolio.creator.username,
+          creatorDisplayName: portfolio.creator.display_name,
+          portfolioTitle: portfolio.title,
+        } : null}
+      />
     </div>
   );
 }

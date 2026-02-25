@@ -20,56 +20,60 @@ export function useProfile(username: string) {
   const fetchProfile = useCallback(async () => {
     setLoading(true);
 
-    // Fetch profile by username
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('username', username)
-      .single();
-
-    const prof = profileData as unknown as Profile | null;
-    if (!prof) {
-      setLoading(false);
-      return;
-    }
-
-    setProfile(prof);
-
-    // Fetch designs, portfolios, and follower count in parallel
-    const [designsRes, portfoliosRes, followersRes] = await Promise.all([
-      supabase
-        .from('designs')
-        .select(`
-          *,
-          creator:profiles!designs_creator_id_fkey (
-            id, username, display_name, avatar_url, is_verified
-          )
-        `)
-        .eq('creator_id', prof.id)
-        .eq('status', 'published')
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('portfolios')
+    try {
+      // Fetch profile by username
+      const { data: profileData } = await supabase
+        .from('profiles')
         .select('*')
-        .eq('creator_id', prof.id)
-        .eq('status', 'published')
-        .order('created_at', { ascending: false }),
-      supabase
-        .from('follows')
-        .select('*', { count: 'exact', head: true })
-        .eq('following_id', prof.id),
-    ]);
+        .eq('username', username)
+        .single();
 
-    if (designsRes.data) {
-      setDesigns(designsRes.data as unknown as DesignWithCreator[]);
-      setDesignCount(designsRes.data.length);
+      const prof = profileData as unknown as Profile | null;
+      if (!prof) {
+        setLoading(false);
+        return;
+      }
+
+      setProfile(prof);
+
+      // Fetch designs, portfolios, and follower count in parallel
+      const [designsRes, portfoliosRes, followersRes] = await Promise.all([
+        supabase
+          .from('designs')
+          .select(`
+            *,
+            creator:profiles!designs_creator_id_fkey (
+              id, username, display_name, avatar_url, is_verified
+            )
+          `)
+          .eq('creator_id', prof.id)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('portfolios')
+          .select('*')
+          .eq('creator_id', prof.id)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('follows')
+          .select('*', { count: 'exact', head: true })
+          .eq('following_id', prof.id),
+      ]);
+
+      if (designsRes.data) {
+        setDesigns(designsRes.data as unknown as DesignWithCreator[]);
+        setDesignCount(designsRes.data.length);
+      }
+
+      if (portfoliosRes.data) {
+        setPortfolios(portfoliosRes.data as unknown as Portfolio[]);
+      }
+
+      setFollowerCount(followersRes.count ?? 0);
+    } catch (err) {
+      console.error('[useProfile] Unexpected error:', err);
     }
-
-    if (portfoliosRes.data) {
-      setPortfolios(portfoliosRes.data as unknown as Portfolio[]);
-    }
-
-    setFollowerCount(followersRes.count ?? 0);
     setLoading(false);
   }, [username]);
 

@@ -18,30 +18,38 @@ export function useDesigns(options: UseDesignsOptions = {}) {
 
   const fetchDesigns = useCallback(async () => {
     setLoading(true);
-    let query = supabase
-      .from('designs')
-      .select(`
-        *,
-        creator:profiles!designs_creator_id_fkey (
-          id, username, display_name, avatar_url, is_verified
-        )
-      `)
-      .eq('status', 'published')
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    try {
+      let query = supabase
+        .from('designs')
+        .select(`
+          *,
+          creator:profiles!designs_creator_id_fkey (
+            id, username, display_name, avatar_url, is_verified
+          )
+        `)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
-    if (category) {
-      query = query.eq('category', category);
-    }
+      if (category) {
+        query = query.eq('category', category);
+      }
 
-    if (featured) {
-      query = query.eq('is_featured', true);
-    }
+      if (featured) {
+        query = query.eq('is_featured', true);
+      }
 
-    const { data, error } = await query;
+      const { data, error } = await query;
 
-    if (!error && data) {
-      setDesigns(data as unknown as DesignWithCreator[]);
+      if (error) {
+        console.error('[useDesigns] Supabase error:', error.message, error);
+        setDesigns([]);
+      } else if (data) {
+        setDesigns(data as unknown as DesignWithCreator[]);
+      }
+    } catch (err) {
+      console.error('[useDesigns] Unexpected error:', err);
+      setDesigns([]);
     }
     setLoading(false);
   }, [category, limit, featured]);

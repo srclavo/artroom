@@ -14,8 +14,13 @@ export const ROUTES = {
   jobPost: '/jobs/post',
   search: '/search',
   dashboard: '/dashboard',
+  dashboardAnalytics: '/dashboard/analytics',
   dashboardUploads: '/dashboard/uploads',
   dashboardEarnings: '/dashboard/earnings',
   dashboardSettings: '/dashboard/settings',
   dashboardJobs: '/dashboard/jobs',
+  dashboardListings: '/dashboard/listings',
+  dashboardMessages: '/dashboard/messages',
+  dashboardWishlist: '/dashboard/wishlist',
+  dashboardSkills: '/dashboard/skills',
 } as const;

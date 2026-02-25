@@ -11,12 +11,12 @@ type MarqueeItem =
 const BASE_ITEMS: MarqueeItem[] = [
   { type: 'link', text: 'Gallery', bg: '#e0eb3a', tc: '#0a0a0a', href: '/gallery' },
   { type: 'link', text: 'Skill Vault', bg: '#6e87f2', tc: '#fff', href: '/skills' },
-  { type: 'link', text: 'Messages', bg: '#ff4625', tc: '#fff', href: '/dashboard' },
+  { type: 'link', text: 'Messages', bg: '#ff4625', tc: '#fff', href: '/dashboard/messages' },
   { type: 'link', text: 'Create', bg: '#2ec66d', tc: '#fff', href: '/dashboard/uploads' },
   { type: 'wallet' },
   { type: 'link', text: 'Gallery', bg: '#d5d1ff', tc: '#0a0a0a', href: '/gallery' },
   { type: 'link', text: 'Skill Vault', bg: '#f07e41', tc: '#fff', href: '/skills' },
-  { type: 'link', text: 'Messages', bg: '#ffafd9', tc: '#0a0a0a', href: '/dashboard' },
+  { type: 'link', text: 'Messages', bg: '#ffafd9', tc: '#0a0a0a', href: '/dashboard/messages' },
   { type: 'link', text: 'Create', bg: '#98c7f3', tc: '#0a0a0a', href: '/dashboard/uploads' },
 ];
 

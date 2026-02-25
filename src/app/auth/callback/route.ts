@@ -8,8 +8,25 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Check if this is a brand-new user (profile has no display_name yet)
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('display_name')
+          .eq('id', data.user.id)
+          .single();
+
+        const profileData = profile as { display_name: string | null } | null;
+
+        // New user — redirect to settings to customize their profile
+        if (profileData && !profileData.display_name) {
+          return NextResponse.redirect(
+            `${origin}/dashboard/settings?welcome=true`
+          );
+        }
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

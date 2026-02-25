@@ -24,16 +24,20 @@ export function useNotifications() {
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
 
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(20);
+    try {
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
 
-    const rows = (data ?? []) as unknown as Notification[];
-    setNotifications(rows);
-    setUnreadCount(rows.filter((n) => !n.is_read).length);
+      const rows = (data ?? []) as unknown as Notification[];
+      setNotifications(rows);
+      setUnreadCount(rows.filter((n) => !n.is_read).length);
+    } catch (err) {
+      console.error('[useNotifications] Unexpected error:', err);
+    }
     setLoading(false);
   }, [user]);
 

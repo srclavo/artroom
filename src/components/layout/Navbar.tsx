@@ -105,7 +105,7 @@ export function Navbar() {
 
           {/* Center - Logo */}
           <Link href={ROUTES.home} className="no-underline">
-            <span className="font-[family-name:var(--font-syne)] text-[18px] font-extrabold tracking-[-0.02em] text-[#0a0a0a]">
+            <span className="font-[family-name:var(--font-syne)] text-[28px] font-extrabold tracking-[-0.03em] text-[#0a0a0a]">
               ArtRoom
             </span>
           </Link>
